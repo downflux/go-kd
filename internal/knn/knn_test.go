@@ -12,7 +12,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 
 	test "github.com/downflux/go-kd/internal/node/test"
-	mock "github.com/downflux/go-kd/point/mock"
+	mock "github.com/downflux/go-kd/internal/point/mock"
 )
 
 const (

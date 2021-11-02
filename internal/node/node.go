@@ -7,7 +7,7 @@ import (
 	"github.com/downflux/go-geometry/vector"
 	"github.com/downflux/go-kd/internal/axis"
 	"github.com/downflux/go-kd/point"
-	"github.com/downflux/go-kd/point/sorter"
+	"github.com/downflux/go-kd/internal/point/sorter"
 )
 
 // N represents a K-D tree node. Child nodes are sorted along the same axis,
