@@ -1,0 +1,7 @@
+github.com/downflux/go-geometry v0.0.0-20211102080230-0b4bee8b86a0 h1:GO5+izEua5VAAj8UOliFLPA8Zw5OdgymcmjwCAwbd6g=
+github.com/downflux/go-geometry v0.0.0-20211102080230-0b4bee8b86a0/go.mod h1:bOw8DHBLJWY8Q7erBWH0Dk4R1poNt5v3huDhUNfxqDU=
+github.com/google/go-cmp v0.5.6 h1:BKbKCqvP6I+rmFHt06ZmyQtvB8xAkWdhFyr0ZUNZcxQ=
+github.com/google/go-cmp v0.5.6/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
+golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
+golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 h1:go1bK/D/BFZV2I8cIQd1NKEZ+0owSTG1fDTci4IqFcE=
+golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
