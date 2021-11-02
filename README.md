@@ -14,7 +14,6 @@ import (
 
 	"github.com/downflux/go-geometry/circle"
 	"github.com/downflux/go-geometry/vector"
-
 	"github.com/downflux/go-kd/kd"
 	"github.com/downflux/go-kd/point"
 )
