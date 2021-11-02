@@ -1,0 +1,14 @@
+DownFlux
+Copyright 2021 DownFlux
+
+This product includes software from
+
+* the "kyroy/kdtree" library (https://github.com/kyroy/kdtree).
+
+Some parts of the framework, including but not limited to
+
+* knn/...
+* rangesearch/...
+
+are copied from, derived from, or inspired by the kyroy/kdtree library.
+Copyright 2018 - 2021 Dennis Kuhnert. All Rights Reserved.
