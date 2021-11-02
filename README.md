@@ -6,7 +6,7 @@ See https://en.wikipedia.org/wiki/K-d_tree for more information.
 
 ## Example
 
-```
+```golang
 package main
 
 import (
