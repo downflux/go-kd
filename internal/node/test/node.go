@@ -2,7 +2,7 @@
 package node
 
 import (
-	"github.com/downflux/go-kd/node"
+	"github.com/downflux/go-kd/internal/node"
 )
 
 func Flatten(n *node.N) []*node.N {

@@ -5,7 +5,7 @@ package sorter
 import (
 	"sort"
 
-	"github.com/downflux/go-kd/axis"
+	"github.com/downflux/go-kd/internal/axis"
 	"github.com/downflux/go-kd/point"
 )
 

@@ -7,8 +7,8 @@ import (
 
 	"github.com/downflux/go-geometry/rectangle"
 	"github.com/downflux/go-geometry/vector"
-	"github.com/downflux/go-kd/axis"
-	"github.com/downflux/go-kd/node"
+	"github.com/downflux/go-kd/internal/axis"
+	"github.com/downflux/go-kd/internal/node"
 )
 
 // Search traverses the K-D tree node and returns all child nodes which are

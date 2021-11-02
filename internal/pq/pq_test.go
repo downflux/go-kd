@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/downflux/go-geometry/vector"
-	"github.com/downflux/go-kd/node"
+	"github.com/downflux/go-kd/internal/node"
 	"github.com/downflux/go-kd/point"
 	"github.com/google/go-cmp/cmp"
 

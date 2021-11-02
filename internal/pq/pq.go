@@ -4,7 +4,7 @@ import (
 	"container/heap"
 	"math"
 
-	"github.com/downflux/go-kd/node"
+	"github.com/downflux/go-kd/internal/node"
 )
 
 type d struct {

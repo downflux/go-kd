@@ -5,9 +5,9 @@ import (
 	"math"
 
 	"github.com/downflux/go-geometry/vector"
-	"github.com/downflux/go-kd/axis"
-	"github.com/downflux/go-kd/node"
-	"github.com/downflux/go-kd/pq"
+	"github.com/downflux/go-kd/internal/axis"
+	"github.com/downflux/go-kd/internal/node"
+	"github.com/downflux/go-kd/internal/pq"
 )
 
 // path generates a list of nodes to the root, starting from a leaf node,

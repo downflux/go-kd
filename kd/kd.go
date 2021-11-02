@@ -14,10 +14,10 @@ import (
 	"github.com/downflux/go-geometry/circle"
 	"github.com/downflux/go-geometry/rectangle"
 	"github.com/downflux/go-geometry/vector"
-	"github.com/downflux/go-kd/knn"
-	"github.com/downflux/go-kd/node"
+	"github.com/downflux/go-kd/internal/knn"
+	"github.com/downflux/go-kd/internal/node"
+	"github.com/downflux/go-kd/internal/rangesearch"
 	"github.com/downflux/go-kd/point"
-	"github.com/downflux/go-kd/rangesearch"
 )
 
 // T is a K-D tree implementation.
