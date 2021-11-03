@@ -1,5 +1,5 @@
-// Package node defines test-only functions on nodes.
-package node
+// Package flatten takes as input a node and returns list-processing utilities.
+package flatten
 
 import (
 	"github.com/downflux/go-kd/internal/node"

@@ -8,11 +8,11 @@ import (
 
 	"github.com/downflux/go-geometry/vector"
 	"github.com/downflux/go-kd/internal/node"
+	"github.com/downflux/go-kd/internal/node/testdata/flatten"
 	"github.com/downflux/go-kd/point"
 	"github.com/google/go-cmp/cmp"
 
-	test "github.com/downflux/go-kd/internal/node/test"
-	mock "github.com/downflux/go-kd/internal/point/mock"
+	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
 )
 
 const (
@@ -23,7 +23,7 @@ func TestPath(t *testing.T) {
 	type config struct {
 		name string
 		n    *node.N
-		v    vector.V
+		p    vector.V
 		want []*node.N
 	}
 
@@ -31,7 +31,7 @@ func TestPath(t *testing.T) {
 		{
 			name: "Null",
 			n:    nil,
-			v:    *vector.New(1, 2),
+			p:    *vector.New(1, 2),
 			want: nil,
 		},
 
@@ -48,7 +48,7 @@ func TestPath(t *testing.T) {
 			return config{
 				name: "Leaf/Match",
 				n:    n,
-				v:    n.V(),
+				p:    n.P(),
 				want: []*node.N{n},
 			}
 		}(),
@@ -66,7 +66,7 @@ func TestPath(t *testing.T) {
 			return config{
 				name: "Leaf/NoMatch",
 				n:    n,
-				v:    *vector.New(0, 2),
+				p:    *vector.New(0, 2),
 				want: []*node.N{n},
 			}
 		}(),
@@ -84,7 +84,7 @@ func TestPath(t *testing.T) {
 			return config{
 				name: "AssertLeafFirst",
 				n:    n,
-				v:    *vector.New(1, 2),
+				p:    *vector.New(1, 2),
 				want: []*node.N{
 					n.L(),
 					n,
@@ -107,7 +107,7 @@ func TestPath(t *testing.T) {
 			return config{
 				name: "AssertAlwaysLeaf",
 				n:    n,
-				v:    *vector.New(2, 2),
+				p:    *vector.New(2, 2),
 				want: []*node.N{
 					n.R(),
 					n,
@@ -118,7 +118,7 @@ func TestPath(t *testing.T) {
 
 	for _, c := range testConfigs {
 		t.Run(c.name, func(t *testing.T) {
-			got := path(c.n, c.v, tolerance)
+			got := path(c.n, c.p, tolerance)
 			if diff := cmp.Diff(
 				c.want,
 				got,
@@ -131,18 +131,18 @@ func TestPath(t *testing.T) {
 
 type nl struct {
 	ns []*node.N
-	v  vector.V
+	p  vector.V
 }
 
-func (s *nl) Dist(i int) float64 { return vector.Magnitude(vector.Sub(s.ns[i].V(), s.v)) }
+func (s *nl) Dist(i int) float64 { return vector.Magnitude(vector.Sub(s.ns[i].P(), s.p)) }
 func (s *nl) Len() int           { return len(s.ns) }
 func (s *nl) Less(i, j int) bool { return s.Dist(i) < s.Dist(j) }
 func (s *nl) Swap(i, j int)      { s.ns[i], s.ns[j] = s.ns[j], s.ns[i] }
 
-func sortNodes(n *node.N, v vector.V) []*node.N {
+func sortNodes(n *node.N, p vector.V) []*node.N {
 	s := &nl{
-		ns: test.Flatten(n),
-		v:  v,
+		ns: flatten.Flatten(n),
+		p:  p,
 	}
 
 	sort.Sort(s)
@@ -160,7 +160,7 @@ func TestKNN(t *testing.T) {
 	type config struct {
 		name string
 		n    *node.N
-		v    vector.V
+		p    vector.V
 		k    int
 		want []*node.N
 	}
@@ -169,7 +169,7 @@ func TestKNN(t *testing.T) {
 		{
 			name: "Null",
 			n:    nil,
-			v:    *vector.New(1, 2),
+			p:    *vector.New(1, 2),
 			k:    1,
 			want: nil,
 		},
@@ -182,7 +182,7 @@ func TestKNN(t *testing.T) {
 				0,
 				tolerance,
 			),
-			v:    *vector.New(1, 2),
+			p:    *vector.New(1, 2),
 			k:    0,
 			want: nil,
 		},
@@ -205,14 +205,14 @@ func TestKNN(t *testing.T) {
 				config{
 					name: "Trivial/Near",
 					n:    n,
-					v:    n.V(),
+					p:    n.P(),
 					k:    1,
 					want: []*node.N{n},
 				},
 				config{
 					name: "Trivial/Far",
 					n:    n,
-					v:    *vector.New(1000, 1000),
+					p:    *vector.New(1000, 1000),
 					k:    1,
 					want: []*node.N{n},
 				},
@@ -243,7 +243,7 @@ func TestKNN(t *testing.T) {
 				config{
 					name: "Multiple/k=1/Near",
 					n:    n,
-					v:    *vector.New(4, 39),
+					p:    *vector.New(4, 39),
 					k:    1,
 					want: sortNodes(n, *vector.New(4, 39))[:1],
 				},
@@ -251,15 +251,15 @@ func TestKNN(t *testing.T) {
 
 			for i := 0; i < k; i++ {
 				k := rand.Intn(len(ps)) + 1
-				v := rv()
+				p := rv()
 				cs = append(
 					cs,
 					config{
 						name: fmt.Sprintf("Multiple/k=%v/%v", k, i),
 						n:    n,
-						v:    v,
+						p:    p,
 						k:    k,
-						want: sortNodes(n, v)[:k],
+						want: sortNodes(n, p)[:k],
 					},
 				)
 			}
@@ -270,7 +270,7 @@ func TestKNN(t *testing.T) {
 
 	for _, c := range testConfigs {
 		t.Run(c.name, func(t *testing.T) {
-			got := KNN(c.n, c.v, c.k, tolerance)
+			got := KNN(c.n, c.p, c.k, tolerance)
 			if diff := cmp.Diff(
 				c.want,
 				got,

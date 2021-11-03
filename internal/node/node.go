@@ -6,8 +6,8 @@ import (
 
 	"github.com/downflux/go-geometry/vector"
 	"github.com/downflux/go-kd/internal/axis"
-	"github.com/downflux/go-kd/point"
 	"github.com/downflux/go-kd/internal/point/sorter"
+	"github.com/downflux/go-kd/point"
 )
 
 // N represents a K-D tree node. Child nodes are sorted along the same axis,
@@ -21,8 +21,8 @@ type N struct {
 	// depth of 0.
 	depth int
 
-	// v represents the coordinate of all data stored in this node.
-	v vector.V
+	// p represents the coordinate of all data stored in this node.
+	p vector.V
 
 	// data is a list of data points stored in this node. All data here are
 	// located at the same spacial coordinate.
@@ -74,10 +74,10 @@ func (n *N) size() int {
 // child.
 func (n *N) Axis() axis.Type { return axis.A(n.depth) }
 
-// V is the point on the XY-plane to which this node is embedded. All data in
+// P is the point on the XY-plane to which this node is embedded. All data in
 // this node are located at the same spacial coordinate, within a small margin
 // of error.
-func (n *N) V() vector.V { return n.v }
+func (n *N) P() vector.V { return n.p }
 
 // Data returns a list of data stored in this node.
 func (n *N) Data() []point.P { return append([]point.P{}, n.data...) }
@@ -86,12 +86,12 @@ func (n *N) Data() []point.P { return append([]point.P{}, n.data...) }
 // that is, this function wraps the normal branching pattern for e.g. search
 // operations.
 func (n *N) Child(v vector.V, tolerance float64) *N {
-	if vector.Within(n.V(), v, tolerance) {
+	if vector.Within(n.P(), v, tolerance) {
 		return nil
 	}
 
 	x := axis.X(v, n.Axis())
-	nx := axis.X(n.V(), n.Axis())
+	nx := axis.X(n.P(), n.Axis())
 
 	if x < nx {
 		return n.L()
@@ -124,19 +124,19 @@ func (n *N) Insert(p point.P, tolerance float64) {
 	// operation, so we need to ensure this cache is updated.
 	defer func() { n.sizeCacheValid = false }()
 
-	if vector.Within(p.V(), n.V(), tolerance) {
+	if vector.Within(p.P(), n.P(), tolerance) {
 		n.data = append(n.data, p)
 		return
 	}
 
-	x := axis.X(p.V(), n.Axis())
-	nx := axis.X(n.V(), n.Axis())
+	x := axis.X(p.P(), n.Axis())
+	nx := axis.X(n.P(), n.Axis())
 
 	if x < nx {
 		if n.l == nil {
 			n.l = &N{
 				depth: n.depth + 1,
-				v:     p.V(),
+				p:     p.P(),
 			}
 		}
 		n.l.Insert(p, tolerance)
@@ -145,7 +145,7 @@ func (n *N) Insert(p point.P, tolerance float64) {
 	if n.r == nil {
 		n.r = &N{
 			depth: n.depth + 1,
-			v:     p.V(),
+			p:     p.P(),
 		}
 	}
 	n.r.Insert(p, tolerance)
@@ -163,7 +163,7 @@ func (n *N) Remove(v vector.V, f func(p point.P) bool, tolerance float64) bool {
 	// operation, so we need to ensure this cache is updated.
 	defer func() { n.sizeCacheValid = false }()
 
-	if vector.Within(v, n.V(), tolerance) {
+	if vector.Within(v, n.P(), tolerance) {
 		for i := range n.data {
 			if f(n.data[i]) {
 				// Remove the i-th element and set the data to
@@ -202,16 +202,16 @@ func New(data []point.P, depth int, tolerance float64) *N {
 	sorter.Sort(data, axis.A(depth))
 
 	m := len(data) / 2
-	v := data[m].V()
+	p := data[m].P()
 
 	// Find adjacent elements in the sorted list that have the same
 	// coordinates as the median, as they all should be in the same node.
 	var l int
 	var r int
-	for i := m; i >= 0 && vector.Within(v, data[i].V(), tolerance); i-- {
+	for i := m; i >= 0 && vector.Within(p, data[i].P(), tolerance); i-- {
 		l = i
 	}
-	for i := m; i < len(data) && vector.Within(v, data[i].V(), tolerance); i++ {
+	for i := m; i < len(data) && vector.Within(p, data[i].P(), tolerance); i++ {
 		r = i
 	}
 
@@ -223,7 +223,7 @@ func New(data []point.P, depth int, tolerance float64) *N {
 		r:     New(data[r+1:], depth+1, tolerance),
 		depth: depth,
 
-		v:    v,
+		p:    p,
 		data: data[l : r+1],
 	}
 

@@ -30,7 +30,7 @@ func search(n *node.N, r rectangle.R, bound rectangle.R) []*node.N {
 
 	var ns []*node.N
 
-	if r.In(n.V()) {
+	if r.In(n.P()) {
 		ns = append(ns, n)
 	}
 
@@ -38,20 +38,20 @@ func search(n *node.N, r rectangle.R, bound rectangle.R) []*node.N {
 	lb := map[axis.Type]rectangle.R{
 		axis.Axis_X: *rectangle.New(
 			bound.Min(),
-			*vector.New(n.V().X(), bound.Max().Y()),
+			*vector.New(n.P().X(), bound.Max().Y()),
 		),
 		axis.Axis_Y: *rectangle.New(
 			bound.Min(),
-			*vector.New(bound.Max().X(), n.V().Y()),
+			*vector.New(bound.Max().X(), n.P().Y()),
 		),
 	}[n.Axis()]
 	rb := map[axis.Type]rectangle.R{
 		axis.Axis_X: *rectangle.New(
-			*vector.New(n.V().X(), bound.Min().Y()),
+			*vector.New(n.P().X(), bound.Min().Y()),
 			bound.Max(),
 		),
 		axis.Axis_Y: *rectangle.New(
-			*vector.New(bound.Min().X(), n.V().Y()),
+			*vector.New(bound.Min().X(), n.P().Y()),
 			bound.Max(),
 		),
 	}[n.Axis()]

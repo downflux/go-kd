@@ -8,7 +8,7 @@ import (
 	"github.com/downflux/go-kd/point"
 	"github.com/google/go-cmp/cmp"
 
-	mock "github.com/downflux/go-kd/internal/point/mock"
+	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
 )
 
 const (
@@ -171,8 +171,8 @@ func TestSorterSwap(t *testing.T) {
 			s.Swap(c.i, c.j)
 
 			got := []vector.V{
-				c.data[c.i].V(),
-				c.data[c.j].V(),
+				c.data[c.i].P(),
+				c.data[c.j].P(),
 			}
 
 			if diff := cmp.Diff(

@@ -16,7 +16,7 @@ type s struct {
 
 func (s *s) Len() int { return len(s.data) }
 func (s *s) Less(i, j int) bool {
-	return axis.X(s.data[i].V(), s.axis) < axis.X(s.data[j].V(), s.axis)
+	return axis.X(s.data[i].P(), s.axis) < axis.X(s.data[j].P(), s.axis)
 }
 func (s *s) Swap(i, j int) { s.data[i], s.data[j] = s.data[j], s.data[i] }
 

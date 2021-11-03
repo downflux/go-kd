@@ -48,7 +48,7 @@ func (t *T) Insert(p point.P) { t.root.Insert(p, t.tolerance) }
 
 // Remove deletes an existing data point from the tree. This function will
 // delete the first matching point with the given coordinates.
-func (t *T) Remove(v vector.V, f func(p point.P) bool) bool { return t.root.Remove(v, f, t.tolerance) }
+func (t *T) Remove(p vector.V, f func(p point.P) bool) bool { return t.root.Remove(p, f, t.tolerance) }
 
 // Filter returns a set of data points in the given bounding box. Data points
 // are added to the returned set if they fall inside the bounding box and passes
@@ -74,7 +74,7 @@ func RadialFilter(t *T, c circle.C, f func(p point.P) bool) []point.P {
 		vector.Add(c.P(), *vector.New(c.R(), c.R())),
 	)
 	return Filter(t, r, func(p point.P) bool {
-		return vector.SquaredMagnitude(vector.Sub(p.V(), c.P())) <= c.R()*c.R() && f(p)
+		return vector.SquaredMagnitude(vector.Sub(p.P(), c.P())) <= c.R()*c.R() && f(p)
 	})
 }
 
