@@ -19,18 +19,18 @@ import (
 )
 
 // P implements the point.P interface, which needs to provide a coordinate
-// vector function V().
+// vector function P().
 type P struct {
-	v   vector.V
+	p   vector.V
 	tag string
 }
 
-func (p P) V() vector.V { return p.v }
+func (p P) P() vector.V { return p.p }
 
 func main() {
 	t := kd.New([]point.P{
-		P{v: *vector.New(1, 2), tag: "A"},
-		P{v: *vector.New(1, 2), tag: "B"},
+		P{p: *vector.New(1, 2), tag: "A"},
+		P{p: *vector.New(1, 2), tag: "B"},
 	}, 1e-10)
 
 	for _, p := range kd.KNN(t, *vector.New(0, 0), 2) {
