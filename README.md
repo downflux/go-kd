@@ -2,6 +2,9 @@
 
 Golang k-d tree implementation with duplicate coordinate support
 
+*N.B.*: This is only implemented for the k = 2 case, but should be trivially
+easy to expand to k-dimensions should the need arise.
+
 See https://en.wikipedia.org/wiki/K-d_tree for more information.
 
 ## Example
