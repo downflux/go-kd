@@ -2,9 +2,6 @@
 
 Golang k-d tree implementation with duplicate coordinate support
 
-*N.B.*: This is only implemented for the k = 2 case, but should be trivially
-easy to expand to k-dimensions should the need arise.
-
 See https://en.wikipedia.org/wiki/K-d_tree for more information.
 
 ## Example
@@ -31,33 +28,33 @@ type P struct {
 func (p P) P() vector.V { return p.p }
 
 func main() {
-	t, err := kd.New([]point.P{
-		P{p: *vector.New(1, 2), tag: "A"},
-		P{p: *vector.New(1, 2), tag: "B"},
+	// N.B.: KD operations will return non-nil errors if the input vectors
+	// are not a consistent length.
+	p := *vector.New(1, 2, 3)
+	origin := *vector.New(0, 0, 0)
+
+	t, _ := kd.New([]point.P{
+		P{p: p, tag: "A"},
+		P{p: p, tag: "B"},
 	})
 
-	if err != nil {
-		panic(fmt.Sprintf("could not create K-D tree: %v", err))
-	}
-
 	fmt.Println("KNN search")
-	for _, p := range kd.KNN(t, *vector.New(0, 0), 2) {
+	ns, _ := kd.KNN(t, origin, 2)
+	for _, p := range ns {
 		fmt.Println(p)
 	}
 
 	// Remove deletes the first data point at the given input coordinate and
 	// matches the input check function.
-	t.Remove(*vector.New(1, 2), func(p point.P) bool {
+	t.Remove(p, func(p point.P) bool {
 		return p.(P).tag == "B"
 	})
 
 	// RadialFilter returns all points within the circle range and match the
 	// input filter function.
 	fmt.Println("radial search")
-	for _, p := range kd.RadialFilter(
-		t,
-		*hypersphere.New(*vector.New(0, 0), 5),
-		func(p point.P) bool { return true }) {
+	ns, _ = kd.RadialFilter(t, *hypersphere.New(origin, 5), func(p point.P) bool { return true })
+	for _, p := range ns {
 		fmt.Println(p)
 	}
 }

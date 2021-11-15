@@ -13,10 +13,15 @@ import (
 // Search traverses the K-D tree node and returns all child nodes which are
 // contained in the bounding rectangle.
 func Search(n *node.N, r hyperrectangle.R) []*node.N {
-	return search(n, r, *hyperrectangle.New(
-		*vector.New(math.Inf(-1), math.Inf(-1)),
-		*vector.New(math.Inf(0), math.Inf(0)),
-	))
+	min := make([]float64, n.P().Dimension())
+	max := make([]float64, n.P().Dimension())
+
+	for i := vector.D(0); i < n.P().Dimension(); i++ {
+		min[i] = math.Inf(-1)
+		max[i] = math.Inf(0)
+	}
+
+	return search(n, r, *hyperrectangle.New(*vector.New(min...), *vector.New(max...)))
 }
 
 // search recursively travels through the tree node to look for nodes within the
