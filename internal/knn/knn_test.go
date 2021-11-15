@@ -6,17 +6,13 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/downflux/go-geometry/vector"
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/internal/node"
 	"github.com/downflux/go-kd/internal/node/testdata/flatten"
 	"github.com/downflux/go-kd/point"
 	"github.com/google/go-cmp/cmp"
 
 	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
-)
-
-const (
-	tolerance = 1e-10
 )
 
 func TestPath(t *testing.T) {
@@ -43,7 +39,6 @@ func TestPath(t *testing.T) {
 					*mock.New(*vector.New(1, 2), ""),
 				},
 				0,
-				tolerance,
 			)
 			return config{
 				name: "Leaf/Match",
@@ -61,7 +56,6 @@ func TestPath(t *testing.T) {
 					*mock.New(*vector.New(1, 2), ""),
 				},
 				0,
-				tolerance,
 			)
 			return config{
 				name: "Leaf/NoMatch",
@@ -79,7 +73,6 @@ func TestPath(t *testing.T) {
 					*mock.New(*vector.New(2, 2), ""),
 				},
 				0,
-				tolerance,
 			)
 			return config{
 				name: "AssertLeafFirst",
@@ -102,7 +95,6 @@ func TestPath(t *testing.T) {
 					*mock.New(*vector.New(3, 2), ""),
 				},
 				0,
-				tolerance,
 			)
 			return config{
 				name: "AssertAlwaysLeaf",
@@ -118,11 +110,11 @@ func TestPath(t *testing.T) {
 
 	for _, c := range testConfigs {
 		t.Run(c.name, func(t *testing.T) {
-			got := path(c.n, c.p, tolerance)
+			got := path(c.n, c.p)
 			if diff := cmp.Diff(
 				c.want,
 				got,
-				cmp.AllowUnexported(node.N{}, vector.V{}, mock.P{})); diff != "" {
+				cmp.AllowUnexported(node.N{}, mock.P{})); diff != "" {
 				t.Errorf("queue() mismatch (-want +got):\n%v", diff)
 			}
 		})
@@ -180,7 +172,6 @@ func TestKNN(t *testing.T) {
 					*mock.New(*vector.New(1, 2), ""),
 				},
 				0,
-				tolerance,
 			),
 			p:    *vector.New(1, 2),
 			k:    0,
@@ -199,7 +190,6 @@ func TestKNN(t *testing.T) {
 					*mock.New(*vector.New(1, 2), ""),
 				},
 				0,
-				tolerance,
 			)
 			return []config{
 				config{
@@ -237,7 +227,7 @@ func TestKNN(t *testing.T) {
 			//   A   D
 			//  /   /
 			// B   E
-			n := node.New(ps, 0, tolerance)
+			n := node.New(ps, 0)
 
 			cs := []config{
 				config{
@@ -270,11 +260,11 @@ func TestKNN(t *testing.T) {
 
 	for _, c := range testConfigs {
 		t.Run(c.name, func(t *testing.T) {
-			got := KNN(c.n, c.p, c.k, tolerance)
+			got := KNN(c.n, c.p, c.k)
 			if diff := cmp.Diff(
 				c.want,
 				got,
-				cmp.AllowUnexported(node.N{}, vector.V{}, mock.P{})); diff != "" {
+				cmp.AllowUnexported(node.N{}, mock.P{})); diff != "" {
 				t.Errorf("KNN() mismatch (-want +got):\n%v", diff)
 			}
 		})

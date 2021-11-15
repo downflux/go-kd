@@ -4,15 +4,11 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/downflux/go-geometry/vector"
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/point"
 	"github.com/google/go-cmp/cmp"
 
 	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
-)
-
-const (
-	tolerance = 1e-10
 )
 
 func TestNew(t *testing.T) {
@@ -221,12 +217,12 @@ func TestNew(t *testing.T) {
 
 	for _, c := range testConfigs {
 		t.Run(c.name, func(t *testing.T) {
-			got := New(c.data, c.depth, tolerance)
+			got := New(c.data, c.depth)
 
 			if diff := cmp.Diff(
 				c.want,
 				got,
-				cmp.AllowUnexported(N{}, vector.V{}, mock.P{})); diff != "" {
+				cmp.AllowUnexported(N{}, mock.P{})); diff != "" {
 				t.Errorf("New() mismatch (-want +got):\n%v", diff)
 			}
 		})
@@ -350,15 +346,15 @@ func TestInsert(t *testing.T) {
 
 	for _, c := range testConfigs {
 		t.Run(c.name, func(t *testing.T) {
-			n := New(c.data, c.depth, tolerance)
+			n := New(c.data, c.depth)
 			for _, p := range c.p {
-				n.Insert(p, tolerance)
+				n.Insert(p)
 			}
 
 			if diff := cmp.Diff(
 				c.want,
 				n,
-				cmp.AllowUnexported(N{}, vector.V{}, mock.P{})); diff != "" {
+				cmp.AllowUnexported(N{}, mock.P{})); diff != "" {
 				t.Errorf("New() mismatch (-want +got):\n%v", diff)
 			}
 		})
@@ -472,18 +468,18 @@ func TestRemove(t *testing.T) {
 
 	for _, c := range testConfigs {
 		t.Run(c.name, func(t *testing.T) {
-			n := New(c.data, c.depth, tolerance)
+			n := New(c.data, c.depth)
 
 			for _, p := range c.p {
 				n.Remove(p.P(), func(p point.P) bool {
 					return mock.CheckHash(p, p.(mock.P).Hash())
-				}, tolerance)
+				})
 			}
 
 			if diff := cmp.Diff(
 				c.want,
 				n,
-				cmp.AllowUnexported(N{}, vector.V{}, mock.P{})); diff != "" {
+				cmp.AllowUnexported(N{}, mock.P{})); diff != "" {
 				t.Errorf("New() mismatch (-want +got):\n%v", diff)
 			}
 		})

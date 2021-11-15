@@ -3,16 +3,12 @@ package pq
 import (
 	"testing"
 
-	"github.com/downflux/go-geometry/vector"
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/internal/node"
 	"github.com/downflux/go-kd/point"
 	"github.com/google/go-cmp/cmp"
 
 	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
-)
-
-const (
-	tolerance = 1e-10
 )
 
 type item struct {
@@ -44,7 +40,6 @@ func TestHeap(t *testing.T) {
 					*mock.New(*vector.New(1, 2), "A"),
 				},
 				0,
-				tolerance,
 			)
 			return []config{
 				{
@@ -77,35 +72,30 @@ func TestHeap(t *testing.T) {
 						*mock.New(*vector.New(1, 5), "A"),
 					},
 					0,
-					tolerance,
 				),
 				node.New(
 					[]point.P{
 						*mock.New(*vector.New(2, 4), "B"),
 					},
 					0,
-					tolerance,
 				),
 				node.New(
 					[]point.P{
 						*mock.New(*vector.New(3, 3), "C"),
 					},
 					0,
-					tolerance,
 				),
 				node.New(
 					[]point.P{
 						*mock.New(*vector.New(4, 2), "D"),
 					},
 					0,
-					tolerance,
 				),
 				node.New(
 					[]point.P{
 						*mock.New(*vector.New(5, 1), "E"),
 					},
 					0,
-					tolerance,
 				),
 			}
 			return []config{
@@ -182,7 +172,7 @@ func TestHeap(t *testing.T) {
 			if diff := cmp.Diff(
 				c.want,
 				got,
-				cmp.AllowUnexported(node.N{}, vector.V{}, mock.P{}),
+				cmp.AllowUnexported(node.N{}, mock.P{}),
 			); diff != "" {
 				t.Errorf("Pop() mismatch (-want +got):\n%v", diff)
 			}

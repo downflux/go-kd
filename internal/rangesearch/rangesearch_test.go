@@ -3,8 +3,8 @@ package rangesearch
 import (
 	"testing"
 
-	"github.com/downflux/go-geometry/rectangle"
-	"github.com/downflux/go-geometry/vector"
+	"github.com/downflux/go-geometry/nd/hyperrectangle"
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/internal/node"
 	"github.com/downflux/go-kd/point"
 	"github.com/google/go-cmp/cmp"
@@ -12,15 +12,11 @@ import (
 	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
 )
 
-const (
-	tolerance = 1e-10
-)
-
 func TestSearch(t *testing.T) {
 	type config struct {
 		name string
 		n    *node.N
-		r    rectangle.R
+		r    hyperrectangle.R
 		want []*node.N
 	}
 
@@ -28,7 +24,7 @@ func TestSearch(t *testing.T) {
 		{
 			name: "Trivial",
 			n:    nil,
-			r:    *rectangle.New(*vector.New(0, 0), *vector.New(1, 2)),
+			r:    *hyperrectangle.New(*vector.New(0, 0), *vector.New(1, 2)),
 			want: nil,
 		},
 	}
@@ -41,14 +37,13 @@ func TestSearch(t *testing.T) {
 					*mock.New(*vector.New(1, 2), ""),
 				},
 				0,
-				tolerance,
 			)
 
 			return []config{
 				{
 					name: "Trivial/Embedded",
 					n:    n,
-					r: *rectangle.New(
+					r: *hyperrectangle.New(
 						*vector.New(0, 0),
 						*vector.New(2, 3),
 					),
@@ -57,7 +52,7 @@ func TestSearch(t *testing.T) {
 				{
 					name: "Trivial/Disjoint",
 					n:    n,
-					r: *rectangle.New(
+					r: *hyperrectangle.New(
 						*vector.New(2, 3),
 						*vector.New(3, 4),
 					),
@@ -75,7 +70,6 @@ func TestSearch(t *testing.T) {
 				c.want,
 				cmp.AllowUnexported(
 					node.N{},
-					vector.V{},
 					mock.P{},
 				),
 			); diff != "" {

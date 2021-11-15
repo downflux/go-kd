@@ -5,16 +5,15 @@ package rangesearch
 import (
 	"math"
 
-	"github.com/downflux/go-geometry/rectangle"
-	"github.com/downflux/go-geometry/vector"
-	"github.com/downflux/go-kd/internal/axis"
+	"github.com/downflux/go-geometry/nd/hyperrectangle"
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/internal/node"
 )
 
 // Search traverses the K-D tree node and returns all child nodes which are
 // contained in the bounding rectangle.
-func Search(n *node.N, r rectangle.R) []*node.N {
-	return search(n, r, *rectangle.New(
+func Search(n *node.N, r hyperrectangle.R) []*node.N {
+	return search(n, r, *hyperrectangle.New(
 		*vector.New(math.Inf(-1), math.Inf(-1)),
 		*vector.New(math.Inf(0), math.Inf(0)),
 	))
@@ -23,7 +22,7 @@ func Search(n *node.N, r rectangle.R) []*node.N {
 // search recursively travels through the tree node to look for nodes within the
 // input rectangle. The bounding rectangle is a recursion artifact which keeps
 // track of the bounding box of the current node.
-func search(n *node.N, r rectangle.R, bound rectangle.R) []*node.N {
+func search(n *node.N, r hyperrectangle.R, bound hyperrectangle.R) []*node.N {
 	if _, ok := r.Intersect(bound); n == nil || !ok {
 		return nil
 	}
@@ -35,32 +34,40 @@ func search(n *node.N, r rectangle.R, bound rectangle.R) []*node.N {
 	}
 
 	// Calculate the new bounding boxes of the child nodes.
-	lb := map[axis.Type]rectangle.R{
-		axis.Axis_X: *rectangle.New(
-			bound.Min(),
-			*vector.New(n.P().X(), bound.Max().Y()),
-		),
-		axis.Axis_Y: *rectangle.New(
-			bound.Min(),
-			*vector.New(bound.Max().X(), n.P().Y()),
-		),
-	}[n.Axis()]
-	rb := map[axis.Type]rectangle.R{
-		axis.Axis_X: *rectangle.New(
-			*vector.New(n.P().X(), bound.Min().Y()),
-			bound.Max(),
-		),
-		axis.Axis_Y: *rectangle.New(
-			*vector.New(bound.Min().X(), n.P().Y()),
-			bound.Max(),
-		),
-	}[n.Axis()]
+	lbMin := make([]float64, n.P().Dimension())
+	lbMax := make([]float64, n.P().Dimension())
+
+	for i := vector.D(0); i < n.P().Dimension(); i++ {
+		lbMin[i] = bound.Min().X(i)
+		lbMax[i] = bound.Max().X(i)
+
+		if i == n.Axis() {
+			lbMax[i] = n.P().X(i)
+		}
+	}
+
+	// Calculate the new bounding boxes of the child nodes.
+	rbMin := make([]float64, n.P().Dimension())
+	rbMax := make([]float64, n.P().Dimension())
+
+	for i := vector.D(0); i < n.P().Dimension(); i++ {
+		rbMin[i] = bound.Min().X(i)
+		rbMax[i] = bound.Max().X(i)
+
+		if i == n.Axis() {
+			rbMin[i] = n.P().X(i)
+		}
+	}
 
 	if c := n.L(); c != nil {
-		ns = append(ns, search(c, r, lb)...)
+		ns = append(ns, search(c, r, *hyperrectangle.New(
+			*vector.New(lbMin...),
+			*vector.New(lbMax...)))...)
 	}
 	if c := n.R(); c != nil {
-		ns = append(ns, search(c, r, rb)...)
+		ns = append(ns, search(c, r, *hyperrectangle.New(
+			*vector.New(rbMin...),
+			*vector.New(rbMax...)))...)
 	}
 
 	return ns

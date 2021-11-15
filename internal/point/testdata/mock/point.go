@@ -1,7 +1,7 @@
 package point
 
 import (
-	"github.com/downflux/go-geometry/vector"
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/point"
 )
 

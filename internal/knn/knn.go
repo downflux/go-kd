@@ -4,8 +4,7 @@ package knn
 import (
 	"math"
 
-	"github.com/downflux/go-geometry/vector"
-	"github.com/downflux/go-kd/internal/axis"
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/internal/node"
 	"github.com/downflux/go-kd/internal/pq"
 )
@@ -17,7 +16,7 @@ import (
 // coordinates; this is necessary for finding multiple closest neighbors, as we
 // care about points in the tree which do not have to coincide with the point
 // coordinates.
-func path(n *node.N, v vector.V, tolerance float64) []*node.N {
+func path(n *node.N, v vector.V) []*node.N {
 	if n == nil {
 		return nil
 	}
@@ -29,21 +28,21 @@ func path(n *node.N, v vector.V, tolerance float64) []*node.N {
 	// Note that we are bypassing the v == n.P() stop condition check -- we
 	// are always continuing to the leaf node.
 
-	x := axis.X(v, n.Axis())
-	nx := axis.X(n.P(), n.Axis())
+	x := v.X(n.Axis())
+	nx := n.P().X(n.Axis())
 
 	if x < nx {
-		return append(path(n.L(), v, tolerance), n)
+		return append(path(n.L(), v), n)
 	}
-	return append(path(n.R(), v, tolerance), n)
+	return append(path(n.R(), v), n)
 }
 
 // KNN returns the k-nearest neighbors of a given node. Nodes are returned in
 // sorted order, with nodes closest to the input vector at the head of the
 // slice.
-func KNN(n *node.N, p vector.V, k int, tolerance float64) []*node.N {
+func KNN(n *node.N, p vector.V, k int) []*node.N {
 	q := pq.New(k)
-	knn(n, p, q, tolerance)
+	knn(n, p, q)
 
 	var ns []*node.N
 	for !q.Empty() {
@@ -59,18 +58,18 @@ func KNN(n *node.N, p vector.V, k int, tolerance float64) []*node.N {
 
 // knn recursively searches for the k-nearest neighbors of a node. The priority
 // queue input effectively tracks the searched space.
-func knn(n *node.N, p vector.V, q *pq.Q, tolerance float64) {
+func knn(n *node.N, p vector.V, q *pq.Q) {
 	if n == nil {
 		return
 	}
 
-	for _, n := range path(n, p, tolerance) {
+	for _, n := range path(n, p) {
 		if d := vector.Magnitude(vector.Sub(p, n.P())); !q.Full() || d < q.Priority() {
 			q.Push(n, d)
 		}
 
-		x := axis.X(p, n.Axis())
-		nx := axis.X(n.P(), n.Axis())
+		x := p.X(n.Axis())
+		nx := n.P().X(n.Axis())
 
 		// The minimal distance so far exceeds the current node split
 		// plane -- we need to expand into the child nodes.
@@ -86,7 +85,7 @@ func knn(n *node.N, p vector.V, q *pq.Q, tolerance float64) {
 				c = n.L()
 			}
 
-			knn(c, p, q, tolerance)
+			knn(c, p, q)
 		}
 	}
 }

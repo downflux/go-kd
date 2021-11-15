@@ -15,8 +15,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/downflux/go-geometry/circle"
-	"github.com/downflux/go-geometry/vector"
+	"github.com/downflux/go-geometry/nd/hypersphere"
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/kd"
 	"github.com/downflux/go-kd/point"
 )
@@ -31,11 +31,16 @@ type P struct {
 func (p P) P() vector.V { return p.p }
 
 func main() {
-	t := kd.New([]point.P{
+	t, err := kd.New([]point.P{
 		P{p: *vector.New(1, 2), tag: "A"},
 		P{p: *vector.New(1, 2), tag: "B"},
-	}, 1e-10)
+	})
 
+	if err != nil {
+		panic(fmt.Sprintf("could not create K-D tree: %v", err))
+	}
+
+	fmt.Println("KNN search")
 	for _, p := range kd.KNN(t, *vector.New(0, 0), 2) {
 		fmt.Println(p)
 	}
@@ -48,9 +53,10 @@ func main() {
 
 	// RadialFilter returns all points within the circle range and match the
 	// input filter function.
+	fmt.Println("radial search")
 	for _, p := range kd.RadialFilter(
 		t,
-		*circle.New(*vector.New(0, 0), 5),
+		*hypersphere.New(*vector.New(0, 0), 5),
 		func(p point.P) bool { return true }) {
 		fmt.Println(p)
 	}

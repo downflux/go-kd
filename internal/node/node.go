@@ -4,8 +4,7 @@ package node
 import (
 	"math"
 
-	"github.com/downflux/go-geometry/vector"
-	"github.com/downflux/go-kd/internal/axis"
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/internal/point/sorter"
 	"github.com/downflux/go-kd/point"
 )
@@ -72,7 +71,7 @@ func (n *N) size() int {
 // split on the X-axis, then all points left of this node in the XY-plane are in
 // the left child, and all points on or right of this node are in the right
 // child.
-func (n *N) Axis() axis.Type { return axis.A(n.depth) }
+func (n *N) Axis() vector.D { return vector.D(n.depth % int(n.p.Dimension())) }
 
 // P is the point on the XY-plane to which this node is embedded. All data in
 // this node are located at the same spacial coordinate, within a small margin
@@ -85,13 +84,13 @@ func (n *N) Data() []point.P { return append([]point.P{}, n.data...) }
 // Child is the appropriately expanded child node given the input coordinates --
 // that is, this function wraps the normal branching pattern for e.g. search
 // operations.
-func (n *N) Child(v vector.V, tolerance float64) *N {
-	if vector.Within(n.P(), v, tolerance) {
+func (n *N) Child(v vector.V) *N {
+	if vector.Within(n.P(), v) {
 		return nil
 	}
 
-	x := axis.X(v, n.Axis())
-	nx := axis.X(n.P(), n.Axis())
+	x := v.X(n.Axis())
+	nx := n.P().X(n.Axis())
 
 	if x < nx {
 		return n.L()
@@ -119,18 +118,18 @@ func (n *N) R() *N {
 
 // Insert inserts a data point into the node. The point may be stored inside a
 // child node.
-func (n *N) Insert(p point.P, tolerance float64) {
+func (n *N) Insert(p point.P) {
 	// The number of meaningful child nodes may increase after this
 	// operation, so we need to ensure this cache is updated.
 	defer func() { n.sizeCacheValid = false }()
 
-	if vector.Within(p.P(), n.P(), tolerance) {
+	if vector.Within(p.P(), n.P()) {
 		n.data = append(n.data, p)
 		return
 	}
 
-	x := axis.X(p.P(), n.Axis())
-	nx := axis.X(n.P(), n.Axis())
+	x := p.P().X(n.Axis())
+	nx := n.P().X(n.Axis())
 
 	if x < nx {
 		if n.l == nil {
@@ -139,7 +138,7 @@ func (n *N) Insert(p point.P, tolerance float64) {
 				p:     p.P(),
 			}
 		}
-		n.l.Insert(p, tolerance)
+		n.l.Insert(p)
 		return
 	}
 	if n.r == nil {
@@ -148,7 +147,7 @@ func (n *N) Insert(p point.P, tolerance float64) {
 			p:     p.P(),
 		}
 	}
-	n.r.Insert(p, tolerance)
+	n.r.Insert(p)
 }
 
 // Remove deletes a data point from the node or child nodes. A returned value of
@@ -158,12 +157,12 @@ func (n *N) Insert(p point.P, tolerance float64) {
 // removing and shifting the nodes is a non-trivial task. We generally expect
 // k-d trees to be relatively stable once created, and that insert and remove
 // operations are kept at a minimum.
-func (n *N) Remove(v vector.V, f func(p point.P) bool, tolerance float64) bool {
+func (n *N) Remove(v vector.V, f func(p point.P) bool) bool {
 	// The number of meaningful child nodes may decrease after this
 	// operation, so we need to ensure this cache is updated.
 	defer func() { n.sizeCacheValid = false }()
 
-	if vector.Within(v, n.P(), tolerance) {
+	if vector.Within(v, n.P()) {
 		for i := range n.data {
 			if f(n.data[i]) {
 				// Remove the i-th element and set the data to
@@ -180,13 +179,13 @@ func (n *N) Remove(v vector.V, f func(p point.P) bool, tolerance float64) bool {
 		}
 	}
 
-	c := n.Child(v, tolerance)
+	c := n.Child(v)
 
-	return c != nil && c.Remove(v, f, tolerance)
+	return c != nil && c.Remove(v, f)
 }
 
 // New returns a new K-D tree node instance.
-func New(data []point.P, depth int, tolerance float64) *N {
+func New(data []point.P, depth int) *N {
 	if len(data) == 0 {
 		return nil
 	}
@@ -194,12 +193,12 @@ func New(data []point.P, depth int, tolerance float64) *N {
 	// Sort is not stable -- the order may be shuffled, meaning that while
 	// the axis coordinates are in order, the complement dimension is not.
 	//
-	// That is, give we are sorting on the x-axis,
+	// That is, give we are sorting on the X-axis,
 	//
 	//   [(1, 3), (1, 1)]
 	//
 	// is a valid ordering.
-	sorter.Sort(data, axis.A(depth))
+	sorter.Sort(data, vector.D(vector.D(depth)%data[0].P().Dimension()))
 
 	m := len(data) / 2
 	p := data[m].P()
@@ -208,10 +207,10 @@ func New(data []point.P, depth int, tolerance float64) *N {
 	// coordinates as the median, as they all should be in the same node.
 	var l int
 	var r int
-	for i := m; i >= 0 && vector.Within(p, data[i].P(), tolerance); i-- {
+	for i := m; i >= 0 && vector.Within(p, data[i].P()); i-- {
 		l = i
 	}
-	for i := m; i < len(data) && vector.Within(p, data[i].P(), tolerance); i++ {
+	for i := m; i < len(data) && vector.Within(p, data[i].P()); i++ {
 		r = i
 	}
 
@@ -219,8 +218,8 @@ func New(data []point.P, depth int, tolerance float64) *N {
 	r = int(math.Min(float64(len(data)-1), float64(r)))
 
 	n := &N{
-		l:     New(data[:l], depth+1, tolerance),
-		r:     New(data[r+1:], depth+1, tolerance),
+		l:     New(data[:l], depth+1),
+		r:     New(data[r+1:], depth+1),
 		depth: depth,
 
 		p:    p,

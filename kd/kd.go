@@ -11,9 +11,11 @@
 package kd
 
 import (
-	"github.com/downflux/go-geometry/circle"
-	"github.com/downflux/go-geometry/rectangle"
-	"github.com/downflux/go-geometry/vector"
+	"fmt"
+
+	"github.com/downflux/go-geometry/nd/hyperrectangle"
+	"github.com/downflux/go-geometry/nd/hypersphere"
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/internal/knn"
 	"github.com/downflux/go-kd/internal/node"
 	"github.com/downflux/go-kd/internal/rangesearch"
@@ -22,21 +24,27 @@ import (
 
 // T is a K-D tree implementation.
 type T struct {
-	root      *node.N
-	tolerance float64
+	root *node.N
 }
 
-func New(data []point.P, tolerance float64) *T {
-	return &T{
-		root:      node.New(data, 0, tolerance),
-		tolerance: tolerance,
+func New(data []point.P) (*T, error) {
+	if len(data) > 0 {
+		k := data[0].P().Dimension()
+		for _, c := range data {
+			if c.P().Dimension() != k {
+				return nil, fmt.Errorf("cannot create a K-D tree with data of inconsistent dimensions")
+			}
+		}
 	}
+	return &T{
+		root: node.New(data, 0),
+	}, nil
 }
 
 // Balance rebalances the tree; note that in general, tree node mutations are
 // expensive and messy, so much so that it's easier to just redo the tree from
 // scratch.
-func (t *T) Balance() { t.root = node.New(node.Points(t.root), 0, t.tolerance) }
+func (t *T) Balance() { t.root = node.New(node.Points(t.root), 0) }
 
 // Insert adds a new data point into the tree.
 //
@@ -44,18 +52,18 @@ func (t *T) Balance() { t.root = node.New(node.Points(t.root), 0, t.tolerance) }
 // points may unbalance the tree, causing queries to become much slower than in
 // theory. If this function must be called a number of times, it's generally
 // good practice to call Balance() in order to ensure optimal lookup times.
-func (t *T) Insert(datum point.P) { t.root.Insert(datum, t.tolerance) }
+func (t *T) Insert(datum point.P) { t.root.Insert(datum) }
 
 // Remove deletes an existing data point from the tree. This function will
 // delete the first matching point with the given coordinates.
 func (t *T) Remove(position vector.V, f func(datum point.P) bool) bool {
-	return t.root.Remove(position, f, t.tolerance)
+	return t.root.Remove(position, f)
 }
 
 // Filter returns a set of data points in the given bounding box. Data points
 // are added to the returned set if they fall inside the bounding box and passes
 // the given filter function.
-func Filter(t *T, r rectangle.R, f func(datum point.P) bool) []point.P {
+func Filter(t *T, r hyperrectangle.R, f func(datum point.P) bool) []point.P {
 	var data []point.P
 	for _, n := range rangesearch.Search(t.root, r) {
 		for _, p := range n.Data() {
@@ -70,8 +78,8 @@ func Filter(t *T, r rectangle.R, f func(datum point.P) bool) []point.P {
 // RadialFilter returns a set of data points in the given bounding circle. Data
 // points are added to the returned set if they fall inside the bounding circle
 // and passes the given filter function.
-func RadialFilter(t *T, c circle.C, f func(datum point.P) bool) []point.P {
-	r := *rectangle.New(
+func RadialFilter(t *T, c hypersphere.C, f func(datum point.P) bool) []point.P {
+	r := *hyperrectangle.New(
 		vector.Sub(c.P(), *vector.New(c.R(), c.R())),
 		vector.Add(c.P(), *vector.New(c.R(), c.R())),
 	)
@@ -88,7 +96,7 @@ func RadialFilter(t *T, c circle.C, f func(datum point.P) bool) []point.P {
 // criteria.
 func KNN(t *T, position vector.V, k int) []point.P {
 	var data []point.P
-	for _, n := range knn.KNN(t.root, position, k, t.tolerance) {
+	for _, n := range knn.KNN(t.root, position, k) {
 		if len(data) < k {
 			data = append(data, n.Data()...)
 		} else {
