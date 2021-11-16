@@ -1,6 +1,6 @@
 # go-kd
 
-Golang k-d tree implementation with duplicate coordinate support
+Golang K-D tree implementation with duplicate coordinate support
 
 See https://en.wikipedia.org/wiki/K-d_tree for more information.
 
