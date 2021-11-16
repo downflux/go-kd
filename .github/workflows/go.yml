@@ -21,4 +21,4 @@ jobs:
       run: go build -v github.com/downflux/go-kd/...
 
     - name: Test github.com/downflux/go-kd
-      run: go test -v github.com/downflux/go-kd/... -bench .
+      run: go test -v github.com/downflux/go-kd/... -bench . -benchmem -benchtime=1000x
