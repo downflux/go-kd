@@ -1,4 +1,4 @@
-// Package kd implements a 2D K-D tree with arbitrary data packing and duplicate
+// Package kd implements a K-D tree with arbitrary data packing and duplicate
 // data coordinate support.
 //
 // K-D trees are generally a cacheing layer representation of the local state --
