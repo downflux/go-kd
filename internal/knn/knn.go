@@ -9,13 +9,7 @@ import (
 	"github.com/downflux/go-kd/internal/pq"
 )
 
-// path generates a list of nodes to the root, starting from a leaf node,
-// with a node guaranteed to contain the input coordinates.
-//
-// N.B.: We do not stop the recursion if we reach a node with matching
-// coordinates; this is necessary for finding multiple closest neighbors, as we
-// care about points in the tree which do not have to coincide with the point
-// coordinates.
+// path generates a list of nodes to the root, starting from a leaf.
 func path(n *node.N, v vector.V) []*node.N {
 	if n == nil {
 		return nil
@@ -26,7 +20,9 @@ func path(n *node.N, v vector.V) []*node.N {
 	}
 
 	// Note that we are bypassing the v == n.P() stop condition check -- we
-	// are always continuing to the leaf node.
+	// are always continuing to the leaf node. This is necessary for finding
+	// multiple closest neighbors, as we care about points in the tree which
+	// do not have to coincide with the point coordinates.
 
 	x := v.X(n.Axis())
 	nx := n.P().X(n.Axis())
@@ -49,7 +45,9 @@ func KNN(n *node.N, p vector.V, k int) []*node.N {
 		ns = append(ns, q.Pop())
 	}
 
-	// Return nearest nodes first by reversing the flattened queue order.
+	// The priority queue q sorts data with highest priority (read:
+	// distance) first. We want to return data closest the the query point
+	// at the head of the slice, so we need to reverse this ordering.
 	for i, j := 0, len(ns)-1; i < j; i, j = i+1, j-1 {
 		ns[i], ns[j] = ns[j], ns[i]
 	}
@@ -57,7 +55,7 @@ func KNN(n *node.N, p vector.V, k int) []*node.N {
 }
 
 // knn recursively searches for the k-nearest neighbors of a node. The priority
-// queue input effectively tracks the searched space.
+// queue input q in effect tracks the searched space.
 func knn(n *node.N, p vector.V, q *pq.Q) {
 	if n == nil {
 		return
@@ -72,10 +70,14 @@ func knn(n *node.N, p vector.V, q *pq.Q) {
 		nx := n.P().X(n.Axis())
 
 		// The minimal distance so far exceeds the current node split
-		// plane -- we need to expand into the child nodes.
+		// plane, so we need to expand into the complement (i.e.
+		// unexplored) child nodes.
 		if q.Priority() > math.Abs(nx-x) {
 			// We normally will expand the left child node if
-			// x < nx; however, this was already expanded while
+			//
+			//   x < nx
+			//
+			// however, this was already expanded while
 			// generating the queue; therefore, we want to expand to
 			// the unexplored, complement child instead.
 			var c *node.N

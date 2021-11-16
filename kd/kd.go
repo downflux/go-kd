@@ -45,19 +45,22 @@ func New(data []point.P) (*T, error) {
 	}, nil
 }
 
+// K represents the number of splitting planes in the tree (i.e. the "K" of the
+// K-D tree).
 func (t *T) K() vector.D { return t.k }
 
-// Balance rebalances the tree; note that in general, tree node mutations are
-// expensive and messy, so much so that it's easier to just redo the tree from
-// scratch.
-func (t *T) Balance() { t.root = node.New(node.Points(t.root), 0) }
+// Balance ensures the tree has minimal height by reconstructing the tree. Note
+// that in general, mutations to the structure of the tree are expensive and
+// complicated, so much so that it's easier to just redo the tree from scratch
+// than to worry about shifting nodes around.
+func (t *T) Balance() { t.root = node.New(node.Data(t.root), 0) }
 
 // Insert adds a new data point into the tree.
 //
 // N.B.: This is not guaranteed to be a balanced insertion -- adding lots of
 // points may unbalance the tree, causing queries to become much slower than in
 // theory. If this function must be called a number of times, it's generally
-// good practice to call Balance() in order to ensure optimal lookup times.
+// good practice to call Balance() after a while to ensure optimal lookup times.
 func (t *T) Insert(datum point.P) error {
 	if datum.P().Dimension() != t.K() {
 		return fmt.Errorf("cannot insert %v-dimensional data into a %v-dimensional K-D tree", datum.P().Dimension(), t.K())
@@ -94,9 +97,9 @@ func Filter(t *T, r hyperrectangle.R, f func(datum point.P) bool) ([]point.P, er
 	return data, nil
 }
 
-// RadialFilter returns a set of data points in the given bounding circle. Data
-// points are added to the returned set if they fall inside the bounding circle
-// and passes the given filter function.
+// RadialFilter returns a set of data points in the given bounding sphere. Data
+// points are added to the returned set if they fall inside the sphere and
+// passes the given filter function.
 func RadialFilter(t *T, c hypersphere.C, f func(datum point.P) bool) ([]point.P, error) {
 	if c.P().Dimension() != t.K() {
 		return nil, fmt.Errorf("cannot use a %v-dimensional ball to filter %v-dimensional K-D tree", c.P().Dimension(), t.K())
@@ -115,7 +118,7 @@ func RadialFilter(t *T, c hypersphere.C, f func(datum point.P) bool) ([]point.P,
 	})
 }
 
-// KNN returns the k nearest neighbors of the given search coordinates.
+// KNN returns the k-nearest neighbors of the given search coordinates.
 //
 // N.B.: KNN will return at max k neighbors; in the degenerate case that
 // multiple data points reside at the same spacial coordinate, this function

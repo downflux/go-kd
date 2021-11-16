@@ -30,12 +30,12 @@ func (p P) P() vector.V { return p.p }
 func main() {
 	// N.B.: KD operations will return non-nil errors if the input vectors
 	// are not a consistent length.
-	p := *vector.New(1, 2, 3)
+	v := *vector.New(1, 2, 3)
 	origin := *vector.New(0, 0, 0)
 
 	t, _ := kd.New([]point.P{
-		P{p: p, tag: "A"},
-		P{p: p, tag: "B"},
+		P{p: v, tag: "A"},
+		P{p: v, tag: "B"},
 	})
 
 	fmt.Println("KNN search")
@@ -46,14 +46,17 @@ func main() {
 
 	// Remove deletes the first data point at the given input coordinate and
 	// matches the input check function.
-	t.Remove(p, func(p point.P) bool {
+	t.Remove(v, func(p point.P) bool {
 		return p.(P).tag == "B"
 	})
 
 	// RadialFilter returns all points within the circle range and match the
 	// input filter function.
 	fmt.Println("radial search")
-	ns, _ = kd.RadialFilter(t, *hypersphere.New(origin, 5), func(p point.P) bool { return true })
+	ns, _ = kd.RadialFilter(
+		t,
+		*hypersphere.New(origin, 5),
+		func(p point.P) bool { return true })
 	for _, p := range ns {
 		fmt.Println(p)
 	}

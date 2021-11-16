@@ -1,4 +1,4 @@
-// Package flatten takes as input a node and returns list-processing utilities.
+// Package flatten unnests a node and returns an ordered list of node instances.
 package flatten
 
 import (

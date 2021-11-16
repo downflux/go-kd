@@ -1,5 +1,4 @@
 // Package rangesearch implements a range search algorithm for a K-D tree.
-
 package rangesearch
 
 import (
@@ -29,8 +28,8 @@ func Search(n *node.N, r hyperrectangle.R) []*node.N {
 }
 
 // search recursively travels through the tree node to look for nodes within the
-// input rectangle. The bounding rectangle is a recursion artifact which keeps
-// track of the bounding box of the current node.
+// input K-dimensional rectangle. The K-dimensional rectangle input bound is a
+// recursion artifact which keeps track of the bounding box of the current node.
 func search(n *node.N, r hyperrectangle.R, bound hyperrectangle.R) []*node.N {
 	if _, ok := r.Intersect(bound); n == nil || !ok {
 		return nil
@@ -45,28 +44,22 @@ func search(n *node.N, r hyperrectangle.R, bound hyperrectangle.R) []*node.N {
 	// Calculate the new bounding boxes of the child nodes.
 	lbMin := make([]float64, n.P().Dimension())
 	lbMax := make([]float64, n.P().Dimension())
+	rbMin := make([]float64, n.P().Dimension())
+	rbMax := make([]float64, n.P().Dimension())
 
 	for i := vector.D(0); i < n.P().Dimension(); i++ {
 		lbMin[i] = bound.Min().X(i)
 		lbMax[i] = bound.Max().X(i)
 
-		if i == n.Axis() {
-			lbMax[i] = n.P().X(i)
-		}
-	}
-
-	// Calculate the new bounding boxes of the child nodes.
-	rbMin := make([]float64, n.P().Dimension())
-	rbMax := make([]float64, n.P().Dimension())
-
-	for i := vector.D(0); i < n.P().Dimension(); i++ {
 		rbMin[i] = bound.Min().X(i)
 		rbMax[i] = bound.Max().X(i)
-
-		if i == n.Axis() {
-			rbMin[i] = n.P().X(i)
-		}
 	}
+
+	// WLOG the bounding box of the left child node will not contain data
+	// from points in the right node. We know the upper bound of the data in
+	// the left node due by definition of a K-D tree node.
+	lbMax[n.Axis()] = n.P().X(n.Axis())
+	rbMin[n.Axis()] = n.P().X(n.Axis())
 
 	if c := n.L(); c != nil {
 		ns = append(ns, search(c, r, *hyperrectangle.New(

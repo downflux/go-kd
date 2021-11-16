@@ -1,3 +1,4 @@
+// Package pq implements a priority queue.
 package pq
 
 import (
@@ -45,9 +46,10 @@ func (h *max) Pop() interface{} {
 	return i
 }
 
-// Q represents a queue of K-D tree nodes. Q tracks k nodes with the smallest
-// given priorites -- attempting to add a larger node into a full Q will not be
-// successful.
+// Q represents a priority queue of K-D tree nodes with a set size. Q tracks
+// some specified number of nodes with the smallest given priorites --
+// attempting to add a node with a larger priority will result in an effective
+// no-op.
 type Q struct {
 	h    *max
 	size int
@@ -63,8 +65,11 @@ func New(size int) *Q {
 
 }
 
+// Empty checks if the queue contains any elements.
 func (q *Q) Empty() bool { return q.h.Len() == 0 }
-func (q *Q) Full() bool  { return q.h.Len() >= q.size }
+
+// Full checks if the queue is at capacity, and if it may reject future points.
+func (q *Q) Full() bool { return q.h.Len() >= q.size }
 
 // Priority calculates the current highest priority of queue.
 func (q *Q) Priority() float64 {
@@ -76,6 +81,9 @@ func (q *Q) Priority() float64 {
 }
 
 // Push adds a new node into the queue with the given priority.
+//
+// The queue will enforce the struct size constraint by removing elements from
+// itself until the constraint is satisfied.
 func (q *Q) Push(n *node.N, priority float64) {
 	heap.Push(q.h, &d{
 		n:        n,
@@ -86,5 +94,5 @@ func (q *Q) Push(n *node.N, priority float64) {
 	}
 }
 
-// Pop removes highest priority node from the queue.
+// Pop removes the node with highest priority from the queue.
 func (q *Q) Pop() *node.N { return heap.Pop(q.h).(*d).n }

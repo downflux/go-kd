@@ -42,7 +42,8 @@ type N struct {
 func (n *N) Leaf() bool { return n.size() <= 1 }
 
 // size returns the number of meaningful nodes in the current subtree. A size of
-// 0 or 1 indicates n is a leaf node.
+// 1 indicates n is a leaf node; a size of 0 indicates there is no meaningful
+// data in this or child nodes, and can that this node can be skipped.
 func (n *N) size() int {
 	if n.sizeCacheValid {
 		return n.sizeCache
@@ -67,18 +68,17 @@ func (n *N) size() int {
 	return n.sizeCache
 }
 
-// Axis is the discriminant dimension for this tree node -- if the node is
-// split on the X-axis, then all points left of this node in the XY-plane are in
-// the left child, and all points on or right of this node are in the right
-// child.
+// Axis is the discriminant dimension for this tree node -- if the node is split
+// on the X-axis, then all points with X-coordinates less than the node value
+// will be in the left child (and vice versa for the right).
 func (n *N) Axis() vector.D { return vector.D(n.depth % int(n.p.Dimension())) }
 
-// P is the point on the XY-plane to which this node is embedded. All data in
-// this node are located at the same spacial coordinate, within a small margin
-// of error.
+// P is the point in the K-dimensional ambient space to which this node is
+// embedded. All data in this node are located at the same spacial coordinate,
+// within a small margin of error.
 func (n *N) P() vector.V { return n.p }
 
-// Data returns a list of data stored in this node.
+// Data returns a list of data points stored in this specific node.
 func (n *N) Data() []point.P { return append([]point.P{}, n.data...) }
 
 // Child is the appropriately expanded child node given the input coordinates --
@@ -100,7 +100,7 @@ func (n *N) Child(v vector.V) *N {
 
 // L is the meaningful left child node of the current node.
 //
-// This function returns nil if the left node does not contain any data.
+// This function returns nil if the left subtree does not encapsulate data.
 func (n *N) L() *N {
 	if n.l == nil || n.l.size() == 0 {
 		return nil
@@ -109,6 +109,8 @@ func (n *N) L() *N {
 }
 
 // R is the meaningful right child node of the current node.
+//
+// This function returns nil if the right subtree does not encapsulate data.
 func (n *N) R() *N {
 	if n.r == nil || n.r.size() == 0 {
 		return nil
@@ -116,8 +118,8 @@ func (n *N) R() *N {
 	return n.r
 }
 
-// Insert inserts a data point into the node. The point may be stored inside a
-// child node.
+// Insert adds a data point into the node. The point may be stored in a
+// descendent.
 func (n *N) Insert(p point.P) {
 	// The number of meaningful child nodes may increase after this
 	// operation, so we need to ensure this cache is updated.
@@ -153,9 +155,9 @@ func (n *N) Insert(p point.P) {
 // Remove deletes a data point from the node or child nodes. A returned value of
 // false indicates the given point was not found.
 //
-// N.B.: Remove does not actually delete the underlying k-d tree node. Manually
+// N.B.: Remove does not actually delete the underlying K-D tree node. Manually
 // removing and shifting the nodes is a non-trivial task. We generally expect
-// k-d trees to be relatively stable once created, and that insert and remove
+// these trees to be relatively stable once created, and that insert and remove
 // operations are kept at a minimum.
 func (n *N) Remove(v vector.V, f func(p point.P) bool) bool {
 	// The number of meaningful child nodes may decrease after this
@@ -190,14 +192,16 @@ func New(data []point.P, depth int) *N {
 		return nil
 	}
 
-	// Sort is not stable -- the order may be shuffled, meaning that while
-	// the axis coordinates are in order, the complement dimension is not.
-	//
-	// That is, give we are sorting on the X-axis,
+	// N.B.: The sort operation here is not stable; that is, given we are
+	// sorting on the X-axis in the 2D ambient space,
 	//
 	//   [(1, 3), (1, 1)]
 	//
-	// is a valid ordering.
+	// is a valid returned ordering, as is
+	//
+	//   [(1, 1), (1, 3)]
+	//
+	// This should be taken into account in testing.
 	sorter.Sort(data, vector.D(vector.D(depth)%data[0].P().Dimension()))
 
 	m := len(data) / 2
@@ -229,14 +233,14 @@ func New(data []point.P, depth int) *N {
 	return n
 }
 
-// Points returns all data stored in the node and subnodes.
-func Points(n *N) []point.P {
+// Data returns the data in the node and descendents.
+func Data(n *N) []point.P {
 	ps := n.Data()
 	if n.L() != nil {
-		ps = append(ps, Points(n.L())...)
+		ps = append(ps, Data(n.L())...)
 	}
 	if n.R() != nil {
-		ps = append(ps, Points(n.R())...)
+		ps = append(ps, Data(n.R())...)
 	}
 	return ps
 }
