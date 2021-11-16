@@ -12,6 +12,12 @@ import (
 	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
 )
 
+var (
+	kRange = []int{2, 10, 100, 1000}
+	nRange = []int{1e5, 1e8, 1e11}
+	fRange = []float64{.1, .25, .5}
+)
+
 func TestConsistentK(t *testing.T) {
 	if _, err := New([]point.P{
 		*mock.New(*vector.New(1), "A"),
@@ -78,9 +84,9 @@ func BenchmarkKNN(b *testing.B) {
 
 	var testConfigs []config
 
-	for _, k := range []int{1, 2, 3, 10, 50} {
-		for _, n := range []int{1000, 10000, 100000} {
-			for _, f := range []float64{.1, .25, .5} {
+	for _, k := range kRange {
+		for _, n := range nRange {
+			for _, f := range fRange {
 				knn := int(float64(n) * f)
 				testConfigs = append(testConfigs, config{
 					name: fmt.Sprintf("K=%v/N=%v/KNN=%v", k, n, knn),
@@ -121,9 +127,9 @@ func BenchmarkRadialFilter(b *testing.B) {
 
 	var testConfigs []config
 
-	for _, k := range []int{1, 2, 3, 10, 50} {
-		for _, n := range []int{1000, 10000, 100000} {
-			for _, f := range []float64{.1, .25, .5} {
+	for _, k := range kRange {
+		for _, n := range nRange {
+			for _, f := range fRange {
 				// We generate points in the interval
 				//
 				//   [-100, 100]
