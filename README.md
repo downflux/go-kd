@@ -4,6 +4,12 @@ Golang k-d tree implementation with duplicate coordinate support
 
 See https://en.wikipedia.org/wiki/K-d_tree for more information.
 
+## Testing
+
+```bash
+go test -v github.com/downflux/go-kd/... -bench .
+```
+
 ## Example
 
 ```golang
