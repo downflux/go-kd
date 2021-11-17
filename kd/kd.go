@@ -40,6 +40,12 @@ func New(data []point.P) (*T, error) {
 		}
 	}
 	return &T{
+		// N.B.: node.New() allocates roughly one new object per data
+		// point, for sparse data. This is very inefficient for large
+		// data sets (e.g. for N >> 1e7). If we want to speed up tree
+		// creation, we should migrate to a slice representation instead
+		// (e.g. create K slices, each of which holds node objects with
+		// the matching discriminant axis).
 		root: node.New(data, 0),
 		k:    k,
 	}, nil
