@@ -7,7 +7,7 @@ See https://en.wikipedia.org/wiki/K-d_tree for more information.
 ## Testing
 
 ```bash
-go test -v github.com/downflux/go-kd/... -bench . -benchmem -benchtime=1000x
+go test -v github.com/downflux/go-kd/... -bench . -benchmem
 ```
 
 ## Example

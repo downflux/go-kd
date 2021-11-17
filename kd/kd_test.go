@@ -18,7 +18,7 @@ const (
 	// f defines the rough percentage of points benchmark tests should seek
 	// for. We deem this an arbitrary but reasonable enough heuristic for
 	// normal data access patterns.
-	f = .15
+	f = .05
 )
 
 var (
@@ -31,11 +31,11 @@ var (
 	// the vector. A float64 is 8B; a K=100 vector is therefore 800B, and
 	// benchmarking with ~1M elements is around 800MB. Keep this lower limit
 	// in mind when trying to test for more stressful conditions.
-	kRange = []int{2, 10, 100}
+	kRange = []int{2, 10}
 
 	// nRange is used for several benchmark tests to specify the number of
 	// elements that should be added to the K-D tree.
-	nRange = []int{1e5, 2e5, 3e5, 1e6}
+	nRange = []int{1e4, 1e5, 2e5, 3e5, 1e6}
 )
 
 func TestConsistentK(t *testing.T) {
@@ -76,13 +76,13 @@ func rv(d int) vector.V {
 		xs[i] = rn()
 	}
 
-	return *vector.New(xs...)
+	return vector.V(xs)
 }
 
 func rp(n int, d int) []point.P {
-	var ps []point.P
+	ps := make([]point.P, n)
 	for i := 0; i < n; i++ {
-		ps = append(ps, *mock.New(rv(d), fmt.Sprintf("Random-%v", i)))
+		ps[i] = *mock.New(rv(d), fmt.Sprintf("Random-%v", i))
 	}
 	return ps
 }
@@ -115,7 +115,9 @@ func BenchmarkNew(b *testing.B) {
 	for _, c := range testConfigs {
 		ps := rp(c.n, c.k)
 		b.Run(c.name, func(b *testing.B) {
-			New(ps)
+			for i := 0; i < b.N; i++ {
+				New(ps)
+			}
 		})
 	}
 }
@@ -139,7 +141,6 @@ func BenchmarkKNN(b *testing.B) {
 
 	for _, k := range kRange {
 		for _, n := range nRange {
-			fmt.Printf("BenchmarkKNN/K=%v/N=%v\n", k, n)
 			knn := int(float64(n) * f)
 			kd, _ := New(rp(n, k))
 			testConfigs = append(testConfigs, config{
@@ -153,8 +154,10 @@ func BenchmarkKNN(b *testing.B) {
 
 	for _, c := range testConfigs {
 		b.Run(c.name, func(b *testing.B) {
-			if _, err := KNN(c.kd, rv(c.k), c.knn); err != nil {
-				b.Errorf("KNN() = _, %v, want = _, %v", err, nil)
+			for i := 0; i < b.N; i++ {
+				if _, err := KNN(c.kd, rv(c.k), c.knn); err != nil {
+					b.Errorf("KNN() = _, %v, want = _, %v", err, nil)
+				}
 			}
 		})
 	}
@@ -188,7 +191,7 @@ func BenchmarkFilter(b *testing.B) {
 			//
 			// along each axis in K-dimensional ambient space. See
 			// rn() for evidence of this. We want to search
-			// approximately f = .15 of the total space, so we will
+			// approximately f = .05 of the total space, so we will
 			// define a ball with this constraint in mind.
 			volume := math.Pow(float64(200), float64(k)) * f
 			l := math.Pow(volume, 1/float64(k))
@@ -215,12 +218,14 @@ func BenchmarkFilter(b *testing.B) {
 		}
 
 		b.Run(c.name, func(b *testing.B) {
-			if _, err := Filter(
-				c.kd,
-				*hyperrectangle.New(min, max),
-				func(point.P) bool { return true },
-			); err != nil {
-				b.Errorf("Filter() = _, %v, want = _, %v", err, nil)
+			for i := 0; i < b.N; i++ {
+				if _, err := Filter(
+					c.kd,
+					*hyperrectangle.New(min, max),
+					func(point.P) bool { return true },
+				); err != nil {
+					b.Errorf("Filter() = _, %v, want = _, %v", err, nil)
+				}
 			}
 		})
 	}
