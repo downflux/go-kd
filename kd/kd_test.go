@@ -18,7 +18,7 @@ const (
 	// f defines the rough percentage of points benchmark tests should seek
 	// for. We deem this an arbitrary but reasonable enough heuristic for
 	// normal data access patterns.
-	f = .05
+	f = 0.05
 )
 
 var (
@@ -191,7 +191,7 @@ func BenchmarkFilter(b *testing.B) {
 			//
 			// along each axis in K-dimensional ambient space. See
 			// rn() for evidence of this. We want to search
-			// approximately f = .05 of the total space, so we will
+			// approximately f = 0.05 of the total space, so we will
 			// define a ball with this constraint in mind.
 			volume := math.Pow(float64(200), float64(k)) * f
 			l := math.Pow(volume, 1/float64(k))

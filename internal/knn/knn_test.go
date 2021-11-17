@@ -163,7 +163,7 @@ func TestKNN(t *testing.T) {
 			n:    nil,
 			p:    *vector.New(1, 2),
 			k:    1,
-			want: nil,
+			want: []*node.N{},
 		},
 		{
 			name: "Null/k=0",
@@ -175,7 +175,7 @@ func TestKNN(t *testing.T) {
 			),
 			p:    *vector.New(1, 2),
 			k:    0,
-			want: nil,
+			want: []*node.N{},
 		},
 	}
 

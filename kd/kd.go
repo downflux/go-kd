@@ -135,7 +135,9 @@ func KNN(t *T, position vector.V, k int) ([]point.P, error) {
 		return nil, fmt.Errorf("cannot use a %v-dimensional position to filter %v-dimensional K-D tree", position.Dimension(), t.K())
 	}
 
-	var data []point.P
+	// We know the upper bound of elements to return.
+	data := make([]point.P, 0, k)
+
 	for _, n := range knn.KNN(t.root, position, k) {
 		if len(data) < k {
 			data = append(data, n.Data()...)

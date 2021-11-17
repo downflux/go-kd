@@ -40,7 +40,7 @@ func KNN(n *node.N, p vector.V, k int) []*node.N {
 	q := pq.New(k)
 	knn(n, p, q)
 
-	var ns []*node.N
+	ns := make([]*node.N, 0, k)
 	for !q.Empty() {
 		ns = append(ns, q.Pop())
 	}

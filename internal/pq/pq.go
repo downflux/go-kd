@@ -57,7 +57,9 @@ type Q struct {
 
 func New(size int) *Q {
 	q := &Q{
-		h:    &max{},
+		h: &max{
+			data: make([]*d, 0, size),
+		},
 		size: size,
 	}
 	heap.Init(q.h)
