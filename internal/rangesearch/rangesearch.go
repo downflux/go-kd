@@ -24,14 +24,14 @@ func Search(n *node.N, r hyperrectangle.R) []*node.N {
 		max[i] = math.Inf(0)
 	}
 
-	return search(n, r, *hyperrectangle.New(*vector.New(min...), *vector.New(max...)))
+	return search(n, &r, hyperrectangle.New(*vector.New(min...), *vector.New(max...)))
 }
 
 // search recursively travels through the tree node to look for nodes within the
 // input K-dimensional rectangle. The K-dimensional rectangle input bound is a
 // recursion artifact which keeps track of the bounding box of the current node.
-func search(n *node.N, r hyperrectangle.R, bound hyperrectangle.R) []*node.N {
-	if _, ok := r.Intersect(bound); n == nil || !ok {
+func search(n *node.N, r *hyperrectangle.R, bound *hyperrectangle.R) []*node.N {
+	if _, ok := (*r).Intersect(*bound); n == nil || !ok {
 		return nil
 	}
 
@@ -41,35 +41,19 @@ func search(n *node.N, r hyperrectangle.R, bound hyperrectangle.R) []*node.N {
 		ns = append(ns, n)
 	}
 
-	// Calculate the new bounding boxes of the child nodes.
-	lbMin := make([]float64, n.P().Dimension())
-	lbMax := make([]float64, n.P().Dimension())
-	rbMin := make([]float64, n.P().Dimension())
-	rbMax := make([]float64, n.P().Dimension())
-
-	for i := vector.D(0); i < n.P().Dimension(); i++ {
-		lbMin[i] = bound.Min().X(i)
-		lbMax[i] = bound.Max().X(i)
-
-		rbMin[i] = bound.Min().X(i)
-		rbMax[i] = bound.Max().X(i)
-	}
-
-	// WLOG the bounding box of the left child node will not contain data
-	// from points in the right node. We know the upper bound of the data in
-	// the left node due by definition of a K-D tree node.
-	lbMax[n.Axis()] = n.P().X(n.Axis())
-	rbMin[n.Axis()] = n.P().X(n.Axis())
-
 	if c := n.L(); c != nil {
-		ns = append(ns, search(c, r, *hyperrectangle.New(
-			*vector.New(lbMin...),
-			*vector.New(lbMax...)))...)
+		// WLOG the bounding box of the left child node will not
+		// contain data from points in the right node. We know the
+		// upper bound of the data in the left node due by definition
+		// of a K-D tree node.
+		bound.Max()[n.Axis()] = n.P().X(n.Axis())
+
+		ns = append(ns, search(c, r, bound)...)
 	}
 	if c := n.R(); c != nil {
-		ns = append(ns, search(c, r, *hyperrectangle.New(
-			*vector.New(rbMin...),
-			*vector.New(rbMax...)))...)
+		bound.Min()[n.Axis()] = n.P().X(n.Axis())
+
+		ns = append(ns, search(c, r, bound)...)
 	}
 
 	return ns
