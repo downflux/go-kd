@@ -155,6 +155,7 @@ func BenchmarkKNN(b *testing.B) {
 	for _, c := range testConfigs {
 		b.Run(c.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
+				c.knn = 1
 				if _, err := KNN(c.kd, rv(c.k), c.knn); err != nil {
 					b.Errorf("KNN() = _, %v, want = _, %v", err, nil)
 				}

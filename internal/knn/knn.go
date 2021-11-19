@@ -3,6 +3,7 @@ package knn
 
 import (
 	"math"
+	"fmt"
 
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/internal/node"
@@ -37,8 +38,16 @@ func path(n *node.N, v vector.V) []*node.N {
 // sorted order, with nodes closest to the input vector at the head of the
 // slice.
 func KNN(n *node.N, p vector.V, k int) []*node.N {
+	stats.recursion = 0
+	stats.total = 0
+	if n == nil {
+		stats.size = 0
+	} else {
+		stats.size = n.Size()
+	}
+
 	q := pq.New(k)
-	knn(n, p, q)
+	knn(n, p, q, map[*node.N]bool{})
 
 	ns := make([]*node.N, 0, k)
 	for !q.Empty() {
@@ -51,16 +60,34 @@ func KNN(n *node.N, p vector.V, k int) []*node.N {
 	for i, j := 0, len(ns)-1; i < j; i, j = i+1, j-1 {
 		ns[i], ns[j] = ns[j], ns[i]
 	}
+
+	fmt.Println("DEBUG: statsingleton ==", stats)
 	return ns
 }
 
+// DEBUG
+type statSingleton struct {
+	size int
+	recursion int
+	total int
+}
+
+var stats *statSingleton = &statSingleton{}
+
 // knn recursively searches for the k-nearest neighbors of a node. The priority
 // queue input q in effect tracks the searched space.
-func knn(n *node.N, p vector.V, q *pq.Q) {
-	if n == nil {
+func knn(n *node.N, p vector.V, q *pq.Q, closed map[*node.N]bool) {
+	stats.total += 1
+
+	if n == nil || closed[n] {
 		return
 	}
 
+	stats.recursion += 1
+
+	closed[n] = true
+
+        // TODO THIS IS NOT CORRECT -- WE ONLY GENERATE PATH ONCEE, PASS INTO knn, AND THAT REPEATEDLY POPS HEAD, TAIL, EXPANDING INTO HEAD IF NECESSARY
 	for _, n := range path(n, p) {
 		if d := vector.Magnitude(vector.Sub(p, n.P())); !q.Full() || d < q.Priority() {
 			q.Push(n, d)
@@ -73,6 +100,7 @@ func knn(n *node.N, p vector.V, q *pq.Q) {
 		// plane, so we need to expand into the complement (i.e.
 		// unexplored) child nodes.
 		if q.Priority() > math.Abs(nx-x) {
+
 			// We normally will expand the left child node if
 			//
 			//   x < nx
@@ -87,7 +115,7 @@ func knn(n *node.N, p vector.V, q *pq.Q) {
 				c = n.L()
 			}
 
-			knn(c, p, q)
+			knn(c, p, q, closed)
 		}
 	}
 }
