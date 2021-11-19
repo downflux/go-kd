@@ -202,7 +202,9 @@ func New(data []point.P, depth int) *N {
 	//   [(1, 1), (1, 3)]
 	//
 	// This should be taken into account in testing.
-	sorter.Sort(data, vector.D(vector.D(depth)%data[0].P().Dimension()))
+	axis := vector.D(
+		vector.D(depth) % data[0].P().Dimension())
+	sorter.Sort(data, axis)
 
 	m := len(data) / 2
 	p := data[m].P()
