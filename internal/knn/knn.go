@@ -40,16 +40,9 @@ func KNN(n *node.N, p vector.V, k int) []*node.N {
 	q := pq.New(k)
 	knn(n, p, q)
 
-	ns := make([]*node.N, 0, k)
-	for !q.Empty() {
-		ns = append(ns, q.Pop())
-	}
-
-	// The priority queue q sorts data with highest priority (read:
-	// distance) first. We want to return data closest the the query point
-	// at the head of the slice, so we need to reverse this ordering.
-	for i, j := 0, len(ns)-1; i < j; i, j = i+1, j-1 {
-		ns[i], ns[j] = ns[j], ns[i]
+	ns := make([]*node.N, k)
+	for i := k - 1; i >= 0; i-- {
+	  ns[i] = q.Pop()
 	}
 	return ns
 }
