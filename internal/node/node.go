@@ -41,6 +41,9 @@ type N struct {
 
 func (n *N) Leaf() bool { return n.size() <= 1 }
 
+// DEBUG
+func (n *N) Size() int { return n.size() }
+
 // size returns the number of meaningful nodes in the current subtree. A size of
 // 1 indicates n is a leaf node; a size of 0 indicates there is no meaningful
 // data in this or child nodes, and can that this node can be skipped.
