@@ -67,11 +67,14 @@ func New(size int) *Q {
 
 }
 
+// Len returns the number of elements currently in the queue.
+func (q *Q) Len() int { return q.h.Len() }
+
 // Empty checks if the queue contains any elements.
-func (q *Q) Empty() bool { return q.h.Len() == 0 }
+func (q *Q) Empty() bool { return q.Len() == 0 }
 
 // Full checks if the queue is at capacity, and if it may reject future points.
-func (q *Q) Full() bool { return q.h.Len() >= q.size }
+func (q *Q) Full() bool { return q.Len() >= q.size }
 
 // Priority calculates the current highest priority of queue.
 func (q *Q) Priority() float64 {
@@ -91,7 +94,7 @@ func (q *Q) Push(n *node.N, priority float64) {
 		n:        n,
 		priority: priority,
 	})
-	for !q.Empty() && q.h.Len() > q.size {
+	for !q.Empty() && q.Len() > q.size {
 		q.Pop()
 	}
 }
