@@ -9,6 +9,7 @@ import (
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/internal/node"
 	"github.com/downflux/go-kd/internal/node/testdata/flatten"
+	"github.com/downflux/go-kd/internal/testdata/generator"
 	"github.com/downflux/go-kd/point"
 	"github.com/google/go-cmp/cmp"
 
@@ -142,10 +143,6 @@ func sortNodes(n *node.N, p vector.V) []*node.N {
 	return s.ns
 }
 
-func rn() float64  { return rand.Float64()*200 - 100 }
-func rv() vector.V { return *vector.New(rn(), rn()) }
-func rp() point.P  { return *mock.New(rv(), "") }
-
 func TestKNN(t *testing.T) {
 	const k = 1000
 
@@ -241,7 +238,7 @@ func TestKNN(t *testing.T) {
 
 			for i := 0; i < k; i++ {
 				k := rand.Intn(len(ps)) + 1
-				p := rv()
+				p := generator.V(2)
 				cs = append(
 					cs,
 					config{

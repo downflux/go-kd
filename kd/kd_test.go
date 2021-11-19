@@ -3,12 +3,12 @@ package kd
 import (
 	"fmt"
 	"math"
-	"math/rand"
 	"testing"
 
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 	"github.com/downflux/go-geometry/nd/hypersphere"
 	"github.com/downflux/go-geometry/nd/vector"
+	"github.com/downflux/go-kd/internal/testdata/generator"
 	"github.com/downflux/go-kd/point"
 
 	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
@@ -68,25 +68,6 @@ func TestConsistentK(t *testing.T) {
 	}
 }
 
-func rn() float64 { return rand.Float64()*200 - 100 }
-
-func rv(d int) vector.V {
-	xs := make([]float64, d)
-	for i := 0; i < d; i++ {
-		xs[i] = rn()
-	}
-
-	return vector.V(xs)
-}
-
-func rp(n int, d int) []point.P {
-	ps := make([]point.P, n)
-	for i := 0; i < n; i++ {
-		ps[i] = *mock.New(rv(d), fmt.Sprintf("Random-%v", i))
-	}
-	return ps
-}
-
 // BenchmarkNew measures the construction time of the tree.
 func BenchmarkNew(b *testing.B) {
 	type config struct {
@@ -113,7 +94,7 @@ func BenchmarkNew(b *testing.B) {
 	}
 
 	for _, c := range testConfigs {
-		ps := rp(c.n, c.k)
+		ps := generator.P(c.n, vector.D(c.k))
 		b.Run(c.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				New(ps)
@@ -142,7 +123,7 @@ func BenchmarkKNN(b *testing.B) {
 	for _, k := range kRange {
 		for _, n := range nRange {
 			knn := int(float64(n) * f)
-			kd, _ := New(rp(n, k))
+			kd, _ := New(generator.P(n, vector.D(k)))
 			testConfigs = append(testConfigs, config{
 				name: fmt.Sprintf("K=%v/N=%v", k, n),
 				kd:   kd,
@@ -155,7 +136,7 @@ func BenchmarkKNN(b *testing.B) {
 	for _, c := range testConfigs {
 		b.Run(c.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				if _, err := KNN(c.kd, rv(c.k), c.knn); err != nil {
+				if _, err := KNN(c.kd, generator.V(vector.D(c.k)), c.knn); err != nil {
 					b.Errorf("KNN() = _, %v, want = _, %v", err, nil)
 				}
 			}
@@ -185,18 +166,13 @@ func BenchmarkFilter(b *testing.B) {
 
 	for _, k := range kRange {
 		for _, n := range nRange {
-			// We generate points in the interval
-			//
-			//   [-100, 100]
-			//
-			// along each axis in K-dimensional ambient space. See
-			// rn() for evidence of this. We want to search
-			// approximately f = 0.05 of the total space, so we will
-			// define a ball with this constraint in mind.
-			volume := math.Pow(float64(200), float64(k)) * f
+			// We want to search approximately f = 0.05 of the
+			// total space, so we will define a ball with this
+			// constraint in mind.
+			volume := math.Pow(generator.Interval, float64(k)) * f
 			l := math.Pow(volume, 1/float64(k))
 
-			kd, _ := New(rp(n, k))
+			kd, _ := New(generator.P(n, vector.D(k)))
 			testConfigs = append(testConfigs, config{
 				name: fmt.Sprintf("K=%v/N=%v", k, n),
 				k:    k,
@@ -207,7 +183,7 @@ func BenchmarkFilter(b *testing.B) {
 	}
 
 	for _, c := range testConfigs {
-		p := rv(c.k)
+		p := generator.V(vector.D(c.k))
 
 		min := make([]float64, c.k)
 		max := make([]float64, c.k)
