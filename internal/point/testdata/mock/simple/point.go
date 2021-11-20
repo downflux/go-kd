@@ -7,6 +7,8 @@ import (
 	"github.com/downflux/go-kd/point"
 )
 
+var _ point.P = P{}
+
 type P struct {
 	p    vector.V
 	hash string
@@ -15,7 +17,7 @@ type P struct {
 func (p P) P() vector.V  { return p.p }
 func (p P) Hash() string { return p.hash }
 
-func New(p vector.V, hash string) *P     { return &P{p: p, hash: hash} }
+func New(p vector.V, hash string) *P { return &P{p: p, hash: hash} }
 
 // CheckHash may be passed into the K-D tree API as the filter function for this
 // data struct.

@@ -11,7 +11,7 @@ import (
 	"github.com/downflux/go-kd/internal/testdata/generator"
 	"github.com/downflux/go-kd/point"
 
-	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
+	mock "github.com/downflux/go-kd/internal/point/testdata/mock/simple"
 )
 
 const (
@@ -95,9 +95,19 @@ func BenchmarkNew(b *testing.B) {
 
 	for _, c := range testConfigs {
 		ps := generator.P(c.n, vector.D(c.k))
+		cs := generator.C(c.n, vector.D(c.k))
+
 		b.Run(c.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				New(ps)
+			}
+		})
+
+		// Check tree construction times with more complex point.P
+		// implementations.
+		b.Run(fmt.Sprintf("%v/MultiField", c.name), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				New(cs)
 			}
 		})
 	}

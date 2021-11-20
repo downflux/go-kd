@@ -10,7 +10,8 @@ import (
 	"github.com/kyroy/kdtree"
 	"github.com/kyroy/kdtree/points"
 
-	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
+	simple "github.com/downflux/go-kd/internal/point/testdata/mock/simple"
+	multifield "github.com/downflux/go-kd/internal/point/testdata/mock/multifield"
 )
 
 const (
@@ -33,6 +34,24 @@ func V(d vector.D) vector.V {
 	return vector.V(xs)
 }
 
+// C generates a slice of multifield points satisfying the point.P interface. We
+// use this to detect potential issues with how the K-D tree handles pointers to
+// points, per
+// https://github.com/downflux/go-kd/issues/3#issuecomment-974496706.
+func C(n int, d vector.D) []point.P {
+	// Generating large number of points in tests will mess with data
+	// collection figures. We should ignore these allocs.
+	runtime.MemProfileRate = 0
+	defer func() { runtime.MemProfileRate = 512 * 1024 }()
+
+	ps := make([]point.P, n)
+	for i := 0; i < n; i++ {
+		ps[i] = multifield.New(V(d), fmt.Sprintf("Random-%v", i))
+	}
+	return ps
+}
+
+// P generates a slice of simple points satisfying the point.P interface.
 func P(n int, d vector.D) []point.P {
 	// Generating large number of points in tests will mess with data
 	// collection figures. We should ignore these allocs.
@@ -41,7 +60,7 @@ func P(n int, d vector.D) []point.P {
 
 	ps := make([]point.P, n)
 	for i := 0; i < n; i++ {
-		ps[i] = *mock.New(V(d), fmt.Sprintf("Random-%v", i))
+		ps[i] = *simple.New(V(d), fmt.Sprintf("Random-%v", i))
 	}
 	return ps
 }

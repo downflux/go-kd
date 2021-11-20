@@ -10,7 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/kyroy/kdtree"
 
-	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
+	mock "github.com/downflux/go-kd/internal/point/testdata/mock/simple"
 )
 
 const (
