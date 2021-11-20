@@ -304,8 +304,21 @@ func (b *reference) Less(i, j int) bool {
 }
 func (b *reference) Swap(i, j int) { b.points[i], b.points[j] = b.points[j], b.points[i] }
 
+// BenchmarkSorter provides a sanity check that our implementation is not too
+// far worse than the reference.
+//
+// The most travelled path in K-D tree construction is sorting the slice of
+// coordinates by a particular axis. We want to be sure that our sorting
+// operation on our specific data structure is at least baseline comparable to
+// that of a more widely used alternative.
 func BenchmarkSorter(b *testing.B) {
 	const n = 1e6
+
+	// N.B.: generator.R creates a list of kyroy/tree/points.Point
+	// instances. Our generator creates a list of N-dimensional points, vs.
+	// the specific Points2D struct used in the reference example. This is
+	// because our implementation only supports N-dimensional vectors, and
+	// the reference handles the 2D vector case separately.
 	ps := generator.P(n, 2)
 	rs := generator.R(ps)
 

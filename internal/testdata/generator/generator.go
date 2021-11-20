@@ -7,8 +7,8 @@ import (
 
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/point"
-	"github.com/kyroy/kdtree/points"
 	"github.com/kyroy/kdtree"
+	"github.com/kyroy/kdtree/points"
 
 	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
 )
@@ -47,12 +47,12 @@ func P(n int, d vector.D) []point.P {
 }
 
 func R(ps []point.P) []kdtree.Point {
-        runtime.MemProfileRate = 0
-        defer func() { runtime.MemProfileRate = 512 * 1024 }()
+	runtime.MemProfileRate = 0
+	defer func() { runtime.MemProfileRate = 512 * 1024 }()
 
-        var rs []kdtree.Point
-        for _, p := range ps {
-                rs = append(rs, &points.Point2D{X: p.P().X(0), Y: p.P().X(1)})
-        }
-        return rs
+	var rs []kdtree.Point
+	for _, p := range ps {
+		rs = append(rs, points.NewPoint([]float64{p.P().X(0), p.P().X(1)}, ""))
+	}
+	return rs
 }
