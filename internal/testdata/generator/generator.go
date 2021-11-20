@@ -7,6 +7,8 @@ import (
 
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/point"
+	"github.com/kyroy/kdtree/points"
+	"github.com/kyroy/kdtree"
 
 	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
 )
@@ -42,4 +44,15 @@ func P(n int, d vector.D) []point.P {
 		ps[i] = *mock.New(V(d), fmt.Sprintf("Random-%v", i))
 	}
 	return ps
+}
+
+func R(ps []point.P) []kdtree.Point {
+        runtime.MemProfileRate = 0
+        defer func() { runtime.MemProfileRate = 512 * 1024 }()
+
+        var rs []kdtree.Point
+        for _, p := range ps {
+                rs = append(rs, &points.Point2D{X: p.P().X(0), Y: p.P().X(1)})
+        }
+        return rs
 }

@@ -1,11 +1,14 @@
 package sorter
 
 import (
+	"sort"
 	"testing"
 
 	"github.com/downflux/go-geometry/nd/vector"
+	"github.com/downflux/go-kd/internal/testdata/generator"
 	"github.com/downflux/go-kd/point"
 	"github.com/google/go-cmp/cmp"
+	"github.com/kyroy/kdtree"
 
 	mock "github.com/downflux/go-kd/internal/point/testdata/mock"
 )
@@ -288,4 +291,32 @@ func TestSort(t *testing.T) {
 			}
 		})
 	}
+}
+
+type reference struct {
+	dimension int
+	points    []kdtree.Point
+}
+
+func (b *reference) Len() int { return len(b.points) }
+func (b *reference) Less(i, j int) bool {
+	return b.points[i].Dimension(b.dimension) < b.points[j].Dimension(b.dimension)
+}
+func (b *reference) Swap(i, j int) { b.points[i], b.points[j] = b.points[j], b.points[i] }
+
+func BenchmarkSorter(b *testing.B) {
+	const n = 1e6
+	ps := generator.P(n, 2)
+	rs := generator.R(ps)
+
+	b.Run("Reference", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			sort.Sort(&reference{dimension: 0, points: rs})
+		}
+	})
+	b.Run("Sorter", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			Sort(ps, 0)
+		}
+	})
 }
