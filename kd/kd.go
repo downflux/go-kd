@@ -147,3 +147,8 @@ func KNN(t *T, position vector.V, k int) ([]point.P, error) {
 	}
 	return data, nil
 }
+
+// Data returns all data stored in the K-D tree.
+func Data(t *T) []point.P {
+	return node.Data(t.root)
+}
