@@ -1,9 +1,5 @@
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/downflux/go-geometry v0.4.1 h1:LarOlZfmGFVg31HG1dBF7IoYESlcH/SNmeNmLprXNJk=
-github.com/downflux/go-geometry v0.4.1/go.mod h1:bOw8DHBLJWY8Q7erBWH0Dk4R1poNt5v3huDhUNfxqDU=
-github.com/downflux/go-geometry v0.6.2 h1:bELdXAIJqbmX4TaAh9dWLYH5Wer+RGO5bJjw1nPhRGU=
-github.com/downflux/go-geometry v0.6.2/go.mod h1:bOw8DHBLJWY8Q7erBWH0Dk4R1poNt5v3huDhUNfxqDU=
 github.com/downflux/go-geometry v0.6.3 h1:1BWUam8uA60v3Z+zD0Pt6bbM/gezkLvJPN3+4BAwUA8=
 github.com/downflux/go-geometry v0.6.3/go.mod h1:bOw8DHBLJWY8Q7erBWH0Dk4R1poNt5v3huDhUNfxqDU=
 github.com/google/go-cmp v0.5.6 h1:BKbKCqvP6I+rmFHt06ZmyQtvB8xAkWdhFyr0ZUNZcxQ=
