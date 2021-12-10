@@ -2,6 +2,7 @@ package rangesearch
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"testing"
 
@@ -37,7 +38,7 @@ func (l lex) Swap(i, j int) {
 }
 
 func TestSearchPoints(t *testing.T) {
-	const n = 0
+	const n = 1000
 
 	type config struct {
 		name string
@@ -83,14 +84,23 @@ func TestSearchPoints(t *testing.T) {
 	}
 
 	for i := 0; i < n; i++ {
+		a := generator.V(2)
+		b := generator.V(2)
+
 		testConfigs = append(
 			testConfigs,
 			config{
 				name: fmt.Sprintf("Random/%v", i),
 				ps:   generator.P(n, 2),
 				r: *hyperrectangle.New(
-					generator.V(2),
-					generator.V(2),
+					*vector.New(
+						math.Min(a.X(vector.AXIS_X), b.X(vector.AXIS_X)),
+						math.Min(a.X(vector.AXIS_Y), b.X(vector.AXIS_Y)),
+					),
+					*vector.New(
+						math.Max(a.X(vector.AXIS_X), b.X(vector.AXIS_X)),
+						math.Max(a.X(vector.AXIS_Y), b.X(vector.AXIS_Y)),
+					),
 				),
 			},
 		)
