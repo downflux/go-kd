@@ -69,15 +69,15 @@ func TestSearchPoints(t *testing.T) {
 		{
 			name: "Multipoint",
 			ps: []point.P{
-				*mock.New(*vector.New(-63.415016709218314, -14.328583638638435), ""),
-				*mock.New(*vector.New(-55.54211659864245, 36.21566247851419), ""),
-				*mock.New(*vector.New(51.69698229056947, -37.69551113789503), ""),
-				*mock.New(*vector.New(60.21100853053224, 46.04629545896165), ""),
-				*mock.New(*vector.New(86.5692857036868, 48.369791998364605), ""),
+				*mock.New(*vector.New(-63, -14), ""),
+				*mock.New(*vector.New(-55, 36), ""),
+				*mock.New(*vector.New(51, -37), ""),
+				*mock.New(*vector.New(60, 46), ""),
+				*mock.New(*vector.New(86, 48), ""),
 			},
 			r: *hyperrectangle.New(
-				*vector.New(79.39839151237453, 36.53069760264876),
-				*vector.New(95.78587111533753, 84.44245178434537),
+				*vector.New(79, 36),
+				*vector.New(95, 84),
 			),
 		},
 	}
