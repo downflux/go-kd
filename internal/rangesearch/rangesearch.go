@@ -24,14 +24,22 @@ func Search(n *node.N, r hyperrectangle.R) []*node.N {
 		max[i] = math.Inf(0)
 	}
 
-	return search(n, &r, hyperrectangle.New(*vector.New(min...), *vector.New(max...)))
+	return search(
+		n,
+		&r,
+		hyperrectangle.New(vector.V(min), vector.V(max)),
+		hyperrectangle.New(
+			vector.V(make([]float64, n.P().Dimension())),
+			vector.V(make([]float64, n.P().Dimension())),
+		),
+	)
 }
 
 // search recursively travels through the tree node to look for nodes within the
 // input K-dimensional rectangle. The K-dimensional rectangle input bound is a
 // recursion artifact which keeps track of the bounding box of the current node.
-func search(n *node.N, r *hyperrectangle.R, bound *hyperrectangle.R) []*node.N {
-	if _, ok := (*r).Intersect(*bound); n == nil || !ok {
+func search(n *node.N, r *hyperrectangle.R, bound *hyperrectangle.R, buf *hyperrectangle.R) []*node.N {
+	if ok := (*r).IntersectBuf(*bound, buf); n == nil || !ok {
 		return nil
 	}
 
@@ -53,7 +61,7 @@ func search(n *node.N, r *hyperrectangle.R, bound *hyperrectangle.R) []*node.N {
 		// upper bound of the data in the left node due by definition
 		// of a K-D tree node.
 		bound.Max()[n.Axis()] = n.P().X(n.Axis())
-		ns = append(ns, search(c, r, bound)...)
+		ns = append(ns, search(c, r, bound, buf)...)
 
 		// Restore the bounding box dimension for the right child.
 		bound.Max()[n.Axis()] = max
@@ -62,7 +70,7 @@ func search(n *node.N, r *hyperrectangle.R, bound *hyperrectangle.R) []*node.N {
 		min := bound.Min()[n.Axis()]
 
 		bound.Min()[n.Axis()] = n.P().X(n.Axis())
-		ns = append(ns, search(c, r, bound)...)
+		ns = append(ns, search(c, r, bound, buf)...)
 
 		bound.Min()[n.Axis()] = min
 	}

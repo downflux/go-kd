@@ -3,7 +3,7 @@ module github.com/downflux/go-kd
 go 1.17
 
 require (
-	github.com/downflux/go-geometry v0.6.3
+	github.com/downflux/go-geometry v0.7.0
 	github.com/google/go-cmp v0.5.6
 	github.com/kyroy/kdtree v0.0.0-20200419114247-70830f883f1d
 )
