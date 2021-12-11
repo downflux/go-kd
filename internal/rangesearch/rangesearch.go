@@ -24,14 +24,14 @@ func Search(n *node.N, r hyperrectangle.R) []*node.N {
 		max[i] = math.Inf(0)
 	}
 
-	return search(n, &r, *hyperrectangle.New(*vector.New(min...), *vector.New(max...)))
+	return search(n, &r, hyperrectangle.New(*vector.New(min...), *vector.New(max...)))
 }
 
 // search recursively travels through the tree node to look for nodes within the
 // input K-dimensional rectangle. The K-dimensional rectangle input bound is a
 // recursion artifact which keeps track of the bounding box of the current node.
-func search(n *node.N, r *hyperrectangle.R, bound hyperrectangle.R) []*node.N {
-	if _, ok := (*r).Intersect(bound); n == nil || !ok {
+func search(n *node.N, r *hyperrectangle.R, bound *hyperrectangle.R) []*node.N {
+	if _, ok := (*r).Intersect(*bound); n == nil || !ok {
 		return nil
 	}
 
@@ -42,24 +42,29 @@ func search(n *node.N, r *hyperrectangle.R, bound hyperrectangle.R) []*node.N {
 	}
 
 	if c := n.L(); c != nil {
-		b := *hyperrectangle.New(
-			bound.Min(),
-			bound.Max(),
-		)
+		// bound is a pointer to a hyperrectangle and is re-used if the
+		// right branch is also not empty -- we need to make sure this
+		// branch does not have any non-hermetic effects on the sibling
+		// branch.
+		max := bound.Max()[n.Axis()]
+
 		// WLOG the bounding box of the left child node will not
 		// contain data from points in the right node. We know the
 		// upper bound of the data in the left node due by definition
 		// of a K-D tree node.
-		b.Max()[n.Axis()] = n.P().X(n.Axis())
-		ns = append(ns, search(c, r, b)...)
+		bound.Max()[n.Axis()] = n.P().X(n.Axis())
+		ns = append(ns, search(c, r, bound)...)
+
+		// Restore the bounding box dimension for the right child.
+		bound.Max()[n.Axis()] = max
 	}
 	if c := n.R(); c != nil {
-		b := *hyperrectangle.New(
-			bound.Min(),
-			bound.Max(),
-		)
-		b.Min()[n.Axis()] = n.P().X(n.Axis())
-		ns = append(ns, search(c, r, b)...)
+		min := bound.Min()[n.Axis()]
+
+		bound.Min()[n.Axis()] = n.P().X(n.Axis())
+		ns = append(ns, search(c, r, bound)...)
+
+		bound.Min()[n.Axis()] = min
 	}
 
 	return ns
