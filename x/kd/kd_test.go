@@ -1,67 +1,208 @@
 package kd
 
 import (
-	"fmt"
 	"testing"
 
-	"github.com/downflux/go-geometry/nd/vector"
-	"github.com/downflux/go-kd/internal/testdata/generator"
-
-	multifield "github.com/downflux/go-kd/internal/point/testdata/mock/multifield"
-	simple "github.com/downflux/go-kd/internal/point/testdata/mock/simple"
+	"github.com/downflux/go-geometry/2d/vector"
+	"github.com/downflux/go-kd/x/point"
+	"github.com/downflux/go-kd/x/point/mock"
 )
 
-var (
-	kRange = []int{2, 10}
-	nRange = []int{1e4, 1e5, 2e5, 3e5, 1e6}
-)
+type cmp point.D
 
-func BenchmarkNew(b *testing.B) {
+func (f cmp) Less(a mock.P, b mock.P) bool {
+	return a.P().X(point.D(f)) < b.P().X(point.D(f))
+}
+
+func TestHoare(t *testing.T) {
+	type result struct {
+		data  []mock.P
+		pivot int
+	}
+
 	type config struct {
 		name string
 
-		// k is the number of dimensions of the input data, i.e. the "K"
-		// in K-D tree.
-		k int
+		data  []mock.P
+		pivot int
+		low   int
+		high  int
+		less  func(a mock.P, b mock.P) bool
 
-		// n is the number of points to generate.
-		n int
+		want result
 	}
 
-	var testConfigs []config
-
-	for _, k := range kRange {
-		for _, n := range nRange {
-			testConfigs = append(testConfigs, config{
-				name: fmt.Sprintf("K=%v/N=%v", k, n),
-				k:    k,
-				n:    n,
-			})
-		}
+	configs := []config{
+		{
+			name: "Trivial",
+			data: []mock.P{
+				mock.P{
+					X:    mock.V(*vector.New(100, 80)),
+					Data: "foo",
+				},
+			},
+			pivot: 0,
+			low:   0,
+			high:  1,
+			less:  cmp(point.AXIS_X).Less,
+			want: result{
+				data: []mock.P{
+					mock.P{
+						X:    mock.V(*vector.New(100, 80)),
+						Data: "foo",
+					},
+				},
+				pivot: 0,
+			},
+		},
+		{
+			name: "Simple/NoSwap",
+			data: []mock.P{
+				mock.P{
+					X:    mock.U(0),
+					Data: "foo",
+				},
+				mock.P{
+					X:    mock.U(1),
+					Data: "bar",
+				},
+			},
+			pivot: 0,
+			low:   0,
+			high:  2,
+			less:  cmp(point.AXIS_X).Less,
+			want: result{
+				data: []mock.P{
+					mock.P{
+						X:    mock.U(0),
+						Data: "foo",
+					},
+					mock.P{
+						X:    mock.U(1),
+						Data: "bar",
+					},
+				},
+				pivot: 0,
+			},
+		},
+		{
+			name: "Simple/Swap",
+			data: []mock.P{
+				mock.P{
+					X:    mock.U(1),
+					Data: "bar",
+				},
+				mock.P{
+					X:    mock.U(0),
+					Data: "foo",
+				},
+			},
+			pivot: 0,
+			low:   0,
+			high:  2,
+			less:  cmp(point.AXIS_X).Less,
+			want: result{
+				data: []mock.P{
+					mock.P{
+						X:    mock.U(0),
+						Data: "foo",
+					},
+					mock.P{
+						X:    mock.U(1),
+						Data: "bar",
+					},
+				},
+				pivot: 1,
+			},
+		},
+		{
+			name: "Pivot",
+			data: []mock.P{
+				mock.P{
+					X:    mock.U(100),
+					Data: "2",
+				},
+				mock.P{
+					X:    mock.U(0),
+					Data: "0",
+				},
+				mock.P{
+					X:    mock.U(50),
+					Data: "1",
+				},
+			},
+			pivot: 1,
+			low:   0,
+			high:  3,
+			less:  cmp(point.AXIS_X).Less,
+			want: result{
+				data: []mock.P{
+					mock.P{
+						X:    mock.U(0),
+						Data: "0",
+					},
+					mock.P{
+						X:    mock.U(100),
+						Data: "2",
+					},
+					mock.P{
+						X:    mock.U(50),
+						Data: "1",
+					},
+				},
+				pivot: 0,
+			},
+		},
+		{
+			name: "Pivot/Partial",
+			data: []mock.P{
+				mock.P{
+					X:    mock.U(100),
+					Data: "2",
+				},
+				mock.P{
+					X:    mock.U(0),
+					Data: "0",
+				},
+				mock.P{
+					X:    mock.U(50),
+					Data: "1",
+				},
+			},
+			pivot: 2,
+			low:   1,
+			high:  3,
+			less:  cmp(point.AXIS_X).Less,
+			want: result{
+				data: []mock.P{
+					mock.P{
+						X:    mock.U(100),
+						Data: "2",
+					},
+					mock.P{
+						X:    mock.U(0),
+						Data: "0",
+					},
+					mock.P{
+						X:    mock.U(50),
+						Data: "1",
+					},
+				},
+				pivot: 2,
+			},
+		},
 	}
 
-	for _, c := range testConfigs {
-		ps := make([]simple.P, 0, c.n)
-		for _, p := range generator.P(c.n, vector.D(c.k)) {
-			ps = append(ps, p.(simple.P))
-		}
-
-		cs := make([]*multifield.P, 0, c.n)
-		for _, p := range generator.C(c.n, vector.D(c.k)) {
-			cs = append(cs, p.(*multifield.P))
-		}
-
-		b.Run(c.name, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				New[simple.P](ps)
+	for _, c := range configs {
+		t.Run(c.name, func(t *testing.T) {
+			if got := hoare(c.data, c.pivot, c.low, c.high, c.less); got != c.want.pivot {
+				t.Errorf("hoare() = %v, want = %v", got, c.want.pivot)
 			}
-		})
 
-		// Check tree construction times with more complex point.P
-		// implementations.
-		b.Run(fmt.Sprintf("%v/MultiField", c.name), func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				New[*multifield.P](cs)
+			for i, got := range c.data {
+				if !mock.Equal(got, c.want.data[i]) {
+					t.Errorf("data[i] = %v, want = %v", got, c.want.data[i])
+				}
 			}
 		})
 	}

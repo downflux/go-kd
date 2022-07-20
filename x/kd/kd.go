@@ -1,106 +1,75 @@
-// Package kd exports K-D trees as a generic collection.
 package kd
 
 import (
-	"github.com/downflux/go-geometry/nd/hyperrectangle"
-	"github.com/downflux/go-geometry/nd/hypersphere"
-	"github.com/downflux/go-geometry/nd/vector"
-	"github.com/downflux/go-kd/kd"
-	"github.com/downflux/go-kd/point"
+	"github.com/downflux/go-kd/x/point"
 )
 
-type T[T point.P] kd.T
-
-func New[P point.P](gd []P) (*T[P], error) {
-	data := make([]point.P, 0, len(gd))
-	for _, d := range gd {
-		data = append(data, point.P(d))
-	}
-
-	t, err := kd.New(data)
-	if err != nil {
-		return nil, err
-	}
-	gt := T[P](*t)
-	return &gt, nil
+type O[p point.P] struct {
+	Data []p
+	K    point.D
+	N    int
 }
 
-func (gt *T[P]) K() vector.D {
-	t := kd.T(*gt)
-	return (&t).K()
+type N struct {
+	Low  int
+	High int
+	Mid  int
+
+	Left  *N
+	Right *N
 }
 
-func (gt *T[P]) Balance() {
-	t := kd.T(*gt)
-	(&t).Balance()
+type T[p point.P] struct {
+	k    point.D
+	n    int
+	data []p
 }
 
-func (gt *T[P]) Insert(gd P) error {
-	t := kd.T(*gt)
-	return (&t).Insert(gd)
+func New[p point.P](o O[p]) *T[p] {
+	data := make([]p, len(o.Data))
+	if l := copy(data, o.Data); l != len(o.Data) {
+		panic("could not copy data into k-D tree")
+	}
+	return nil
 }
 
-func (gt *T[P]) Remove(position vector.V, gf func(gd P) bool) (bool, error) {
-	t := kd.T(*gt)
-	f := func(d point.P) bool { return gf(d.(P)) }
-	return (&t).Remove(position, f)
-}
-
-func Filter[P point.P](gt *T[P], r hyperrectangle.R, gf func(gd P) bool) ([]P, error) {
-	t := kd.T(*gt)
-	f := func(d point.P) bool { return gf(d.(P)) }
-
-	d, err := kd.Filter(&t, r, f)
-	if err != nil {
-		return nil, err
+// hoare partitions the input data by the pivot.
+//
+// N.B.: The high index is exclusive -- that is, when partitioning an entire
+// array, high should be set to len(data).
+func hoare[p point.P](data []p, pivot int, low int, high int, less func(a p, b p) bool) int {
+	if pivot < 0 || low < 0 || high < 0 || pivot >= len(data) || low >= len(data) || high > len(data) {
+		return -1
 	}
 
-	gd := make([]P, 0, len(d))
-	for _, d := range d {
-		gd = append(gd, d.(P))
-	}
-	return gd, nil
-}
+	// hoare partitioning requires the pivot at the beginning of the array.
+	data[pivot], data[low] = data[low], data[pivot]
 
-func RadialFilter[P point.P](gt *T[P], c hypersphere.C, gf func(gd P) bool) ([]P, error) {
-	t := kd.T(*gt)
-	f := func(d point.P) bool { return gf(d.(P)) }
+	// i and j are the left and right tracker indices, respectively. i is
+	// strictly increasing, while j is strictly decreasing
+	i := low + 1
+	j := high - 1
 
-	d, err := kd.RadialFilter(&t, c, f)
-	if err != nil {
-		return nil, err
-	}
+	for i <= j {
+		// Skip array elements which are already sorted.
+		for ; less(data[i], data[low]) && i < j; i++ {
+		}
+		for ; less(data[low], data[j]); j-- {
+		}
 
-	gd := make([]P, 0, len(d))
-	for _, d := range d {
-		gd = append(gd, d.(P))
-	}
-	return gd, nil
-}
+		if i > j {
+			break
+		}
 
-func KNN[P point.P](gt *T[P], position vector.V, k int) ([]P, error) {
-	t := kd.T(*gt)
+		data[i], data[j] = data[j], data[i]
 
-	d, err := kd.KNN(&t, position, k)
-	if err != nil {
-		return nil, err
+		i++
+		j--
+
 	}
 
-	gd := make([]P, 0, len(d))
-	for _, d := range d {
-		gd = append(gd, d.(P))
-	}
-	return gd, nil
-}
-
-func Data[P point.P](gt *T[P]) []P {
-	t := kd.T(*gt)
-
-	d := kd.Data(&t)
-
-	gd := make([]P, 0, len(d))
-	for _, d := range d {
-		gd = append(gd, d.(P))
-	}
-	return gd
+	// Since the pivot is stored at the beginning of the array, we need to
+	// do a final swap to ensure the pivot is at the right position.
+	data[low], data[i-1] = data[i-1], data[low]
+	return i - 1
 }
