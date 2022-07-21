@@ -1,8 +1,8 @@
 package kd
 
 import (
-	"github.com/downflux/go-kd/x/point"
 	"github.com/downflux/go-kd/x/internal/node"
+	"github.com/downflux/go-kd/x/point"
 )
 
 type O[p point.P] struct {

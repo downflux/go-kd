@@ -21,6 +21,7 @@ type N struct {
 	High  int
 	Pivot int
 
+	Dim   point.D
 	Left  *N
 	Right *N
 }
@@ -29,11 +30,15 @@ func New[p point.P](o O[p]) *N {
 	if o.Dim > o.K {
 		panic(fmt.Sprintf("given node dimension greater than vector dimension: %v > %v", o.Dim, o.K))
 	}
+	if o.N < 1 {
+		panic("given leaf node size must be a positive integer")
+	}
 	if o.High-o.Low <= o.N {
 		return &N{
 			Low:   o.Low,
 			High:  o.High,
 			Pivot: -1,
+			Dim:   o.Dim,
 		}
 	}
 	pivot := hoare(o.Data, o.Low, o.Low, o.High, func(a p, b p) bool { return a.P().X(o.Dim) < b.P().X(o.Dim) })
@@ -41,6 +46,7 @@ func New[p point.P](o O[p]) *N {
 		Low:   o.Low,
 		High:  o.High,
 		Pivot: pivot,
+		Dim:   o.Dim,
 
 		Left: New[p](O[p]{
 			Data: o.Data,
@@ -48,7 +54,7 @@ func New[p point.P](o O[p]) *N {
 			K:    o.K,
 			N:    o.N,
 			Low:  o.Low,
-			High: pivot - 1,
+			High: pivot,
 		}),
 		Right: New[p](O[p]{
 			Data: o.Data,
