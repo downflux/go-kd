@@ -14,7 +14,7 @@ import (
 
 var (
 	kRange    = []point.D{2, 10, 100, 500}
-	nRange    = []int{1e4, 1e5, 1e6}
+	nRange    = []int{1e3, 1e4, 1e5, 1e6}
 	sizeRange = []int{1, 4, 16, 64}
 )
 

@@ -50,29 +50,50 @@ func New[p point.P](o O[p]) *N {
 		}
 	}
 	pivot := hoare(o.Data, o.Low, o.Low, o.High, func(a p, b p) bool { return a.P().X(o.Axis) < b.P().X(o.Axis) })
-	return &N{
+
+	node := &N{
 		Low:   o.Low,
 		High:  o.High,
 		Pivot: pivot,
 		Axis:  o.Axis,
+	}
 
-		Left: New[p](O[p]{
+	// Node construction can be concurrent since we guarantee child nodes
+	// will never access data across the high / low boundary. Note that this
+	// does increase the number of allocs ~3x, and is less performant for
+	// low data sizes (i.e. for less than ~10k points). We can optionally
+	// branch tree construction on the length of incoming data if we find
+	// the performance prohibitively slow.
+	l := make(chan *N)
+	r := make(chan *N)
+
+	go func(ch chan *N) {
+		ch <- New[p](O[p]{
 			Data: o.Data,
 			Axis: (o.Axis + 1) % o.K,
 			K:    o.K,
 			N:    o.N,
 			Low:  o.Low,
 			High: pivot,
-		}),
-		Right: New[p](O[p]{
+		})
+		close(ch)
+	}(l)
+	go func(ch chan *N) {
+		ch <- New[p](O[p]{
 			Data: o.Data,
 			Axis: (o.Axis + 1) % o.K,
 			K:    o.K,
 			N:    o.N,
 			Low:  pivot + 1,
 			High: o.High,
-		}),
-	}
+		})
+		close(ch)
+	}(r)
+
+	node.Left = <-l
+	node.Right = <-r
+
+	return node
 }
 
 // hoare partitions the input data by the pivot.
