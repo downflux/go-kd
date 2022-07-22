@@ -11,24 +11,28 @@ type O[p point.P] struct {
 	K    point.D
 	N    int
 
-	Dim  point.D
+	Axis point.D
 	Low  int
 	High int
 }
 
+// N is a tree node structure which tracks slices of an input data array that
+// are managed in the node and children. Leaf nodes set the pivot index to -1.
+// Data to the left of current node have smaller values of the given axis.
 type N struct {
 	Low   int
 	High  int
 	Pivot int
 
-	Dim   point.D
+	Axis  point.D
 	Left  *N
 	Right *N
 }
 
+// New recursively constructs a node object given the input data.
 func New[p point.P](o O[p]) *N {
-	if o.Dim > o.K {
-		panic(fmt.Sprintf("given node dimension greater than vector dimension: %v > %v", o.Dim, o.K))
+	if o.Axis > o.K {
+		panic(fmt.Sprintf("given node dimension greater than vector dimension: %v > %v", o.Axis, o.K))
 	}
 	if o.N < 1 {
 		panic("given leaf node size must be a positive integer")
@@ -42,19 +46,19 @@ func New[p point.P](o O[p]) *N {
 			Low:   o.Low,
 			High:  o.High,
 			Pivot: -1,
-			Dim:   o.Dim,
+			Axis:  o.Axis,
 		}
 	}
-	pivot := hoare(o.Data, o.Low, o.Low, o.High, func(a p, b p) bool { return a.P().X(o.Dim) < b.P().X(o.Dim) })
+	pivot := hoare(o.Data, o.Low, o.Low, o.High, func(a p, b p) bool { return a.P().X(o.Axis) < b.P().X(o.Axis) })
 	return &N{
 		Low:   o.Low,
 		High:  o.High,
 		Pivot: pivot,
-		Dim:   o.Dim,
+		Axis:  o.Axis,
 
 		Left: New[p](O[p]{
 			Data: o.Data,
-			Dim:  (o.Dim + 1) % o.K,
+			Axis: (o.Axis + 1) % o.K,
 			K:    o.K,
 			N:    o.N,
 			Low:  o.Low,
@@ -62,7 +66,7 @@ func New[p point.P](o O[p]) *N {
 		}),
 		Right: New[p](O[p]{
 			Data: o.Data,
-			Dim:  (o.Dim + 1) % o.K,
+			Axis: (o.Axis + 1) % o.K,
 			K:    o.K,
 			N:    o.N,
 			Low:  pivot + 1,

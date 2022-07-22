@@ -38,7 +38,7 @@ func New[p point.P](o O[p]) *T[p] {
 		data: data,
 		root: node.New[p](node.O[p]{
 			Data: data,
-			Dim:  0,
+			Axis: 0,
 			K:    o.K,
 			N:    o.N,
 			Low:  0,

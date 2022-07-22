@@ -36,7 +36,7 @@ func TestNew(t *testing.T) {
 				Data: nil,
 				K:    2,
 				N:    1,
-				Dim:  0,
+				Axis: 0,
 				Low:  0,
 				High: 0,
 			},
@@ -53,7 +53,7 @@ func TestNew(t *testing.T) {
 				},
 				K:    1,
 				N:    1,
-				Dim:  0,
+				Axis: 0,
 				Low:  0,
 				High: 1,
 			},
@@ -61,7 +61,7 @@ func TestNew(t *testing.T) {
 				Low:   0,
 				High:  1,
 				Pivot: -1,
-				Dim:   0,
+				Axis:  0,
 			},
 		},
 		{
@@ -79,7 +79,7 @@ func TestNew(t *testing.T) {
 				},
 				K:    1,
 				N:    1,
-				Dim:  0,
+				Axis: 0,
 				Low:  0,
 				High: 2,
 			},
@@ -87,12 +87,12 @@ func TestNew(t *testing.T) {
 				Low:   0,
 				High:  2,
 				Pivot: 1,
-				Dim:   0,
+				Axis:  0,
 				Left: &N{
 					Low:   0,
 					High:  1,
 					Pivot: -1,
-					Dim:   1,
+					Axis:  0,
 				},
 			},
 		},
@@ -110,12 +110,12 @@ func TestNew(t *testing.T) {
 					},
 					{
 						X:    mock.U(0),
-						Data: "bar",
+						Data: "baz",
 					},
 				},
 				K:    1,
 				N:    2,
-				Dim:  0,
+				Axis: 0,
 				Low:  0,
 				High: 3,
 			},
@@ -123,12 +123,48 @@ func TestNew(t *testing.T) {
 				Low:   0,
 				High:  3,
 				Pivot: 0,
-				Dim:   0,
+				Axis:  0,
 				Right: &N{
 					Low:   1,
 					High:  3,
 					Pivot: -1,
-					Dim:   1,
+					Axis:  0,
+				},
+			},
+		},
+		{
+			name: "TripleElement/Unbalanced/BigLeaf/BigK",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					{
+						X:    mock.V(*vector.New(-100, 1)),
+						Data: "foo",
+					},
+					{
+						X:    mock.V(*vector.New(1, 50)),
+						Data: "bar",
+					},
+					{
+						X:    mock.V(*vector.New(0, 75)),
+						Data: "baz",
+					},
+				},
+				K:    2,
+				N:    2,
+				Axis: 0,
+				Low:  0,
+				High: 3,
+			},
+			want: &N{
+				Low:   0,
+				High:  3,
+				Pivot: 0,
+				Axis:  0,
+				Right: &N{
+					Low:   1,
+					High:  3,
+					Pivot: -1,
+					Axis:  1,
 				},
 			},
 		},
@@ -146,12 +182,12 @@ func TestNew(t *testing.T) {
 					},
 					{
 						X:    mock.U(0),
-						Data: "bar",
+						Data: "baz",
 					},
 				},
 				K:    1,
 				N:    1,
-				Dim:  0,
+				Axis: 0,
 				Low:  0,
 				High: 3,
 			},
@@ -159,17 +195,59 @@ func TestNew(t *testing.T) {
 				Low:   0,
 				High:  3,
 				Pivot: 0,
-				Dim:   0,
+				Axis:  0,
 				Right: &N{
 					Low:   1,
 					High:  3,
 					Pivot: 2,
-					Dim:   1,
+					Axis:  1,
 					Left: &N{
 						Low:   1,
 						High:  2,
 						Pivot: -1,
-						Dim:   0,
+						Axis:  0,
+					},
+				},
+			},
+		},
+		{
+			name: "TripleElement/Unbalanced/BigK",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					{
+						X:    mock.V(*vector.New(-100, 1)),
+						Data: "foo",
+					},
+					{
+						X:    mock.V(*vector.New(1, 50)),
+						Data: "bar",
+					},
+					{
+						X:    mock.V(*vector.New(0, 75)),
+						Data: "baz",
+					},
+				},
+				K:    2,
+				N:    1,
+				Axis: 0,
+				Low:  0,
+				High: 3,
+			},
+			want: &N{
+				Low:   0,
+				High:  3,
+				Pivot: 0,
+				Axis:  0,
+				Right: &N{
+					Low:   1,
+					High:  3,
+					Pivot: 1,
+					Axis:  1,
+					Right: &N{
+						Low:   2,
+						High:  3,
+						Pivot: -1,
+						Axis:  0,
 					},
 				},
 			},
@@ -199,12 +277,12 @@ func TestNew(t *testing.T) {
 				}
 
 				for i := n.Low; n.Pivot >= 0 && i < n.Pivot; i++ {
-					if cmp(n.Dim).Less(c.opts.Data[n.Pivot], c.opts.Data[i]) {
+					if cmp(n.Axis).Less(c.opts.Data[n.Pivot], c.opts.Data[i]) {
 						t.Errorf("Less(%v, %v) = false, want = true", c.opts.Data[n.Pivot], c.opts.Data[i])
 					}
 				}
 				for i := n.Pivot; n.Pivot >= 0 && i < n.High; i++ {
-					if cmp(n.Dim).Less(c.opts.Data[i], c.opts.Data[n.Pivot]) {
+					if cmp(n.Axis).Less(c.opts.Data[i], c.opts.Data[n.Pivot]) {
 						t.Errorf("Less(%v, %v) = false, want = true", c.opts.Data[i], c.opts.Data[n.Pivot])
 					}
 				}
