@@ -33,7 +33,11 @@ func New[p point.P](o O[p]) *N {
 	if o.N < 1 {
 		panic("given leaf node size must be a positive integer")
 	}
-	if o.High-o.Low <= o.N {
+	n := o.High - o.Low
+	if n <= 0 {
+		return nil
+	}
+	if n <= o.N {
 		return &N{
 			Low:   o.Low,
 			High:  o.High,

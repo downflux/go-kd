@@ -40,12 +40,7 @@ func TestNew(t *testing.T) {
 				Low:  0,
 				High: 0,
 			},
-			want: &N{
-				Low:   0,
-				High:  0,
-				Pivot: -1,
-				Dim:   0,
-			},
+			want: nil,
 		},
 		{
 			name: "SingleElement",
@@ -89,15 +84,93 @@ func TestNew(t *testing.T) {
 				High: 2,
 			},
 			want: &N{
-				Low:   1,
+				Low:   0,
 				High:  2,
 				Pivot: 1,
 				Dim:   0,
 				Left: &N{
 					Low:   0,
 					High:  1,
-					Pivot: 0,
+					Pivot: -1,
 					Dim:   1,
+				},
+			},
+		},
+		{
+			name: "TripleElement/Unbalanced/BigLeaf",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					{
+						X:    mock.U(-100),
+						Data: "foo",
+					},
+					{
+						X:    mock.U(1),
+						Data: "bar",
+					},
+					{
+						X:    mock.U(0),
+						Data: "bar",
+					},
+				},
+				K:    1,
+				N:    2,
+				Dim:  0,
+				Low:  0,
+				High: 3,
+			},
+			want: &N{
+				Low:   0,
+				High:  3,
+				Pivot: 0,
+				Dim:   0,
+				Right: &N{
+					Low:   1,
+					High:  3,
+					Pivot: -1,
+					Dim:   1,
+				},
+			},
+		},
+		{
+			name: "TripleElement/Unbalanced",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					{
+						X:    mock.U(-100),
+						Data: "foo",
+					},
+					{
+						X:    mock.U(1),
+						Data: "bar",
+					},
+					{
+						X:    mock.U(0),
+						Data: "bar",
+					},
+				},
+				K:    1,
+				N:    1,
+				Dim:  0,
+				Low:  0,
+				High: 3,
+			},
+			want: &N{
+				Low:   0,
+				High:  3,
+				Pivot: 0,
+				Dim:   0,
+				Right: &N{
+					Low:   1,
+					High:  3,
+					Pivot: 2,
+					Dim:   1,
+					Left: &N{
+						Low:   1,
+						High:  2,
+						Pivot: -1,
+						Dim:   0,
+					},
 				},
 			},
 		},
@@ -110,6 +183,9 @@ func TestNew(t *testing.T) {
 				t.Errorf("New() = %v, want = %v", got, c.want)
 			}
 
+			if got == nil {
+				return
+			}
 			open := []*N{got}
 			for len(open) > 0 {
 				var n *N
