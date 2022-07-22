@@ -3,7 +3,7 @@ package node
 import (
 	"testing"
 
-	"github.com/downflux/go-geometry/2d/vector"
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/point"
 	"github.com/downflux/go-kd/x/point/mock"
 )
