@@ -73,7 +73,7 @@ func TestNew(t *testing.T) {
 				K:    c.k,
 				N:    c.size,
 			})
-			if !util.Validate(tree.root, tree.data) {
+			if !util.Validate(tree.root) {
 				t.Errorf("validate() = %v, want = %v", false, true)
 			}
 		})

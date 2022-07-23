@@ -2,6 +2,7 @@ package kd
 
 import (
 	"github.com/downflux/go-kd/x/internal/node"
+	"github.com/downflux/go-kd/x/internal/node/tree"
 	"github.com/downflux/go-kd/x/point"
 )
 
@@ -16,7 +17,7 @@ type T[p point.P] struct {
 	n    int
 	data []p
 
-	root *node.N
+	root node.N[p]
 }
 
 func New[p point.P](o O[p]) *T[p] {
@@ -36,7 +37,7 @@ func New[p point.P](o O[p]) *T[p] {
 		k:    o.K,
 		n:    o.N,
 		data: data,
-		root: node.New[p](node.O[p]{
+		root: tree.New[p](tree.O[p]{
 			Data: data,
 			Axis: 0,
 			K:    o.K,

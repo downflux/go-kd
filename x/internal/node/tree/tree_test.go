@@ -1,24 +1,22 @@
-package node
+package tree
 
 import (
 	"testing"
 
 	"github.com/downflux/go-geometry/nd/vector"
+	"github.com/downflux/go-kd/x/internal/node"
+	"github.com/downflux/go-kd/x/internal/node/util"
 	"github.com/downflux/go-kd/x/point"
 	"github.com/downflux/go-kd/x/point/mock"
 )
 
-type cmp point.D
+var _ node.N[mock.P] = &N[mock.P]{}
 
-func (f cmp) Less(a mock.P, b mock.P) bool {
-	return a.P().X(point.D(f)) < b.P().X(point.D(f))
-}
-
-func equal(n *N, m *N) bool {
+func equal[T point.P](n *N[T], m *N[T]) bool {
 	if n == nil || m == nil {
 		return n == m
 	}
-	return n.Low == m.Low && n.High == m.High && n.Pivot == m.Pivot && equal(n.Left, m.Left) && equal(n.Right, m.Right)
+	return n.low == m.low && n.high == m.high && n.pivot == m.pivot && equal(n.left, m.left) && equal(n.right, m.right)
 }
 
 func TestNew(t *testing.T) {
@@ -26,7 +24,7 @@ func TestNew(t *testing.T) {
 		name string
 		opts O[mock.P]
 
-		want *N
+		want *N[mock.P]
 	}
 
 	configs := []config{
@@ -57,11 +55,11 @@ func TestNew(t *testing.T) {
 				Low:  0,
 				High: 1,
 			},
-			want: &N{
-				Low:   0,
-				High:  1,
-				Pivot: -1,
-				Axis:  0,
+			want: &N[mock.P]{
+				low:   0,
+				high:  1,
+				pivot: -1,
+				axis:  0,
 			},
 		},
 		{
@@ -83,16 +81,16 @@ func TestNew(t *testing.T) {
 				Low:  0,
 				High: 2,
 			},
-			want: &N{
-				Low:   0,
-				High:  2,
-				Pivot: 1,
-				Axis:  0,
-				Left: &N{
-					Low:   0,
-					High:  1,
-					Pivot: -1,
-					Axis:  0,
+			want: &N[mock.P]{
+				low:   0,
+				high:  2,
+				pivot: 1,
+				axis:  0,
+				left: &N[mock.P]{
+					low:   0,
+					high:  1,
+					pivot: -1,
+					axis:  0,
 				},
 			},
 		},
@@ -119,16 +117,16 @@ func TestNew(t *testing.T) {
 				Low:  0,
 				High: 3,
 			},
-			want: &N{
-				Low:   0,
-				High:  3,
-				Pivot: 0,
-				Axis:  0,
-				Right: &N{
-					Low:   1,
-					High:  3,
-					Pivot: -1,
-					Axis:  0,
+			want: &N[mock.P]{
+				low:   0,
+				high:  3,
+				pivot: 0,
+				axis:  0,
+				right: &N[mock.P]{
+					low:   1,
+					high:  3,
+					pivot: -1,
+					axis:  0,
 				},
 			},
 		},
@@ -155,16 +153,16 @@ func TestNew(t *testing.T) {
 				Low:  0,
 				High: 3,
 			},
-			want: &N{
-				Low:   0,
-				High:  3,
-				Pivot: 0,
-				Axis:  0,
-				Right: &N{
-					Low:   1,
-					High:  3,
-					Pivot: -1,
-					Axis:  1,
+			want: &N[mock.P]{
+				low:   0,
+				high:  3,
+				pivot: 0,
+				axis:  0,
+				right: &N[mock.P]{
+					low:   1,
+					high:  3,
+					pivot: -1,
+					axis:  1,
 				},
 			},
 		},
@@ -191,21 +189,21 @@ func TestNew(t *testing.T) {
 				Low:  0,
 				High: 3,
 			},
-			want: &N{
-				Low:   0,
-				High:  3,
-				Pivot: 0,
-				Axis:  0,
-				Right: &N{
-					Low:   1,
-					High:  3,
-					Pivot: 2,
-					Axis:  1,
-					Left: &N{
-						Low:   1,
-						High:  2,
-						Pivot: -1,
-						Axis:  0,
+			want: &N[mock.P]{
+				low:   0,
+				high:  3,
+				pivot: 0,
+				axis:  0,
+				right: &N[mock.P]{
+					low:   1,
+					high:  3,
+					pivot: 2,
+					axis:  1,
+					left: &N[mock.P]{
+						low:   1,
+						high:  2,
+						pivot: -1,
+						axis:  0,
 					},
 				},
 			},
@@ -233,21 +231,21 @@ func TestNew(t *testing.T) {
 				Low:  0,
 				High: 3,
 			},
-			want: &N{
-				Low:   0,
-				High:  3,
-				Pivot: 0,
-				Axis:  0,
-				Right: &N{
-					Low:   1,
-					High:  3,
-					Pivot: 1,
-					Axis:  1,
-					Right: &N{
-						Low:   2,
-						High:  3,
-						Pivot: -1,
-						Axis:  0,
+			want: &N[mock.P]{
+				low:   0,
+				high:  3,
+				pivot: 0,
+				axis:  0,
+				right: &N[mock.P]{
+					low:   1,
+					high:  3,
+					pivot: 1,
+					axis:  1,
+					right: &N[mock.P]{
+						low:   2,
+						high:  3,
+						pivot: -1,
+						axis:  0,
 					},
 				},
 			},
@@ -264,28 +262,9 @@ func TestNew(t *testing.T) {
 			if got == nil {
 				return
 			}
-			open := []*N{got}
-			for len(open) > 0 {
-				var n *N
-				n, open = open[0], open[1:]
 
-				if n.Left != nil {
-					open = append(open, n.Left)
-				}
-				if n.Right != nil {
-					open = append(open, n.Right)
-				}
-
-				for i := n.Low; n.Pivot >= 0 && i < n.Pivot; i++ {
-					if cmp(n.Axis).Less(c.opts.Data[n.Pivot], c.opts.Data[i]) {
-						t.Errorf("Less(%v, %v) = false, want = true", c.opts.Data[n.Pivot], c.opts.Data[i])
-					}
-				}
-				for i := n.Pivot; n.Pivot >= 0 && i < n.High; i++ {
-					if cmp(n.Axis).Less(c.opts.Data[i], c.opts.Data[n.Pivot]) {
-						t.Errorf("Less(%v, %v) = false, want = true", c.opts.Data[i], c.opts.Data[n.Pivot])
-					}
-				}
+			if util.Validate[mock.P](got) != true {
+				t.Errorf("Validate() = %v, want = %v", false, true)
 			}
 		})
 	}
@@ -304,7 +283,7 @@ func TestHoare(t *testing.T) {
 		pivot int
 		low   int
 		high  int
-		less  func(a mock.P, b mock.P) bool
+		less  func(a point.V, b point.V) bool
 
 		want result
 	}
@@ -321,7 +300,7 @@ func TestHoare(t *testing.T) {
 			pivot: 0,
 			low:   0,
 			high:  1,
-			less:  cmp(point.AXIS_X).Less,
+			less:  util.Cmp(point.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -347,7 +326,7 @@ func TestHoare(t *testing.T) {
 			pivot: 0,
 			low:   0,
 			high:  2,
-			less:  cmp(point.AXIS_X).Less,
+			less:  util.Cmp(point.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -377,7 +356,7 @@ func TestHoare(t *testing.T) {
 			pivot: 0,
 			low:   0,
 			high:  2,
-			less:  cmp(point.AXIS_X).Less,
+			less:  util.Cmp(point.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -411,7 +390,7 @@ func TestHoare(t *testing.T) {
 			pivot: 1,
 			low:   0,
 			high:  3,
-			less:  cmp(point.AXIS_X).Less,
+			less:  util.Cmp(point.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -449,7 +428,7 @@ func TestHoare(t *testing.T) {
 			pivot: 2,
 			low:   1,
 			high:  3,
-			less:  cmp(point.AXIS_X).Less,
+			less:  util.Cmp(point.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
