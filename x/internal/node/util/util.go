@@ -46,7 +46,7 @@ func Validate[T point.P](t node.N[T]) bool {
 		}
 		if !n.R().Nil() {
 			for _, p := range n.R().Data() {
-				equal = equal && Cmp(n.Axis()).Less(n.Pivot(), p.P())
+				equal = equal && !Cmp(n.Axis()).Less(p.P(), n.Pivot())
 			}
 		}
 	}

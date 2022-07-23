@@ -95,6 +95,40 @@ func TestNew(t *testing.T) {
 			},
 		},
 		{
+			// Check that elements right of the pivot are greater
+			// than or equal on the same axis.
+			name: "Equal/Right",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					mock.P{
+						X:    mock.U(100),
+						Data: "B",
+					},
+					mock.P{
+						X:    mock.U(100),
+						Data: "A",
+					},
+				},
+				K:    1,
+				N:    1,
+				Axis: 0,
+				Low:  0,
+				High: 2,
+			},
+			want: &N[mock.P]{
+				low:   0,
+				high:  2,
+				pivot: 0,
+				axis:  0,
+				right: &N[mock.P]{
+					low:   1,
+					high:  2,
+					pivot: -1,
+					axis:  0,
+				},
+			},
+		},
+		{
 			name: "TripleElement/Unbalanced/BigLeaf",
 			opts: O[mock.P]{
 				Data: []mock.P{
@@ -442,6 +476,43 @@ func TestHoare(t *testing.T) {
 					mock.P{
 						X:    mock.U(50),
 						Data: "1",
+					},
+				},
+				pivot: 2,
+			},
+		},
+
+		{
+			name: "Pivot/Equal",
+			data: []mock.P{
+				mock.P{X: mock.U(0)},
+				mock.P{
+					X:    mock.U(100),
+					Data: "B",
+				},
+				mock.P{X: mock.U(50)},
+				mock.P{X: mock.U(150)},
+				mock.P{
+					X:    mock.U(100),
+					Data: "A",
+				},
+			},
+			pivot: 1,
+			low:   0,
+			high:  5,
+			less:  util.Cmp(point.AXIS_X).Less,
+			want: result{
+				data: []mock.P{
+					mock.P{X: mock.U(50)},
+					mock.P{X: mock.U(0)},
+					mock.P{
+						X:    mock.U(100),
+						Data: "B",
+					},
+					mock.P{X: mock.U(150)},
+					mock.P{
+						X:    mock.U(100),
+						Data: "A",
 					},
 				},
 				pivot: 2,

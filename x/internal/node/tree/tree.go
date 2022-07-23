@@ -139,10 +139,13 @@ func hoare[T point.P](data []T, pivot int, low int, high int, less func(a point.
 	j := high - 1
 
 	for i <= j {
-		// Skip array elements which are already sorted.
+		// Skip array elements which are already sorted. Note that we
+		// are partitioning such that
+		//
+		// l < p <= r
 		for ; less(data[i].P(), data[low].P()) && i < j; i++ {
 		}
-		for ; less(data[low].P(), data[j].P()); j-- {
+		for ; !less(data[j].P(), data[low].P()) && j > 0; j-- {
 		}
 
 		if i > j {
