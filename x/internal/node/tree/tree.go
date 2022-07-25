@@ -5,14 +5,15 @@ import (
 
 	"github.com/downflux/go-kd/x/internal/node"
 	"github.com/downflux/go-kd/x/point"
+	"github.com/downflux/go-kd/x/vector"
 )
 
 type O[T point.P] struct {
 	Data []T
-	K    point.D
+	K    vector.D
 	N    int
 
-	Axis point.D
+	Axis vector.D
 	Low  int
 	High int
 }
@@ -27,7 +28,7 @@ type N[T point.P] struct {
 	high  int
 	pivot int
 
-	axis  point.D
+	axis  vector.D
 	left  *N[T]
 	right *N[T]
 }
@@ -53,7 +54,7 @@ func New[T point.P](o O[T]) *N[T] {
 			axis:  o.Axis,
 		}
 	}
-	pivot := hoare(o.Data, o.Low, o.Low, o.High, func(a point.V, b point.V) bool { return a.X(o.Axis) < b.X(o.Axis) })
+	pivot := hoare(o.Data, o.Low, o.Low, o.High, func(a vector.V, b vector.V) bool { return a.X(o.Axis) < b.X(o.Axis) })
 
 	node := &N[T]{
 		data:  o.Data,
@@ -101,13 +102,13 @@ func New[T point.P](o O[T]) *N[T] {
 	return node
 }
 
-func (n *N[T]) Nil() bool     { return n == nil }
-func (n *N[T]) L() node.N[T]  { return n.left }
-func (n *N[T]) R() node.N[T]  { return n.right }
-func (n *N[T]) Leaf() bool    { return n.pivot < 0 }
-func (n *N[T]) Axis() point.D { return n.axis }
+func (n *N[T]) Nil() bool      { return n == nil }
+func (n *N[T]) L() node.N[T]   { return n.left }
+func (n *N[T]) R() node.N[T]   { return n.right }
+func (n *N[T]) Leaf() bool     { return n.pivot < 0 }
+func (n *N[T]) Axis() vector.D { return n.axis }
 
-func (n *N[T]) Pivot() point.V {
+func (n *N[T]) Pivot() vector.V {
 	if n.pivot < 0 {
 		return nil
 	}
@@ -125,7 +126,7 @@ func (n *N[T]) Data() []T {
 //
 // N.B.: The high index is exclusive -- that is, when partitioning an entire
 // array, high should be set to len(data).
-func hoare[T point.P](data []T, pivot int, low int, high int, less func(a point.V, b point.V) bool) int {
+func hoare[T point.P](data []T, pivot int, low int, high int, less func(a vector.V, b vector.V) bool) int {
 	if pivot < 0 || low < 0 || high < 0 || pivot >= len(data) || low >= len(data) || high > len(data) {
 		return -1
 	}

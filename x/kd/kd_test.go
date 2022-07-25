@@ -6,27 +6,28 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/node/util"
-	"github.com/downflux/go-kd/x/point"
 	"github.com/downflux/go-kd/x/point/mock"
+	"github.com/downflux/go-kd/x/vector"
+
+	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
 var (
-	kRange    = []point.D{2, 10, 100, 500}
+	kRange    = []vector.D{2, 10, 100, 500}
 	nRange    = []int{1e3, 1e4, 1e5, 1e6}
 	sizeRange = []int{1, 4, 16, 64}
 )
 
-func rv(k point.D, min float64, max float64) mock.V {
+func rv(k vector.D, min float64, max float64) mock.V {
 	var xs []float64
 	for i := 0; i < int(k); i++ {
 		xs = append(xs, rand.Float64()*(max-min)+min)
 	}
-	return mock.V(vector.V(xs))
+	return mock.V(vnd.V(xs))
 }
 
-func generate(n int, k point.D) []*mock.P {
+func generate(n int, k vector.D) []*mock.P {
 	// Generating large number of points in tests will mess with data
 	// collection figures. We should ignore these allocs.
 	runtime.MemProfileRate = 0
@@ -45,7 +46,7 @@ func generate(n int, k point.D) []*mock.P {
 func TestNew(t *testing.T) {
 	type config struct {
 		name string
-		k    point.D
+		k    vector.D
 		n    int
 
 		size int
@@ -83,7 +84,7 @@ func TestNew(t *testing.T) {
 func BenchmarkNew(b *testing.B) {
 	type config struct {
 		name string
-		k    point.D
+		k    vector.D
 		n    int
 
 		size int

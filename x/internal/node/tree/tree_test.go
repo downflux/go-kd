@@ -3,11 +3,13 @@ package tree
 import (
 	"testing"
 
-	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/node"
 	"github.com/downflux/go-kd/x/internal/node/util"
 	"github.com/downflux/go-kd/x/point"
 	"github.com/downflux/go-kd/x/point/mock"
+	"github.com/downflux/go-kd/x/vector"
+
+	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
 var _ node.N[mock.P] = &N[mock.P]{}
@@ -169,15 +171,15 @@ func TestNew(t *testing.T) {
 			opts: O[mock.P]{
 				Data: []mock.P{
 					{
-						X:    mock.V(*vector.New(-100, 1)),
+						X:    mock.V(*vnd.New(-100, 1)),
 						Data: "foo",
 					},
 					{
-						X:    mock.V(*vector.New(1, 50)),
+						X:    mock.V(*vnd.New(1, 50)),
 						Data: "bar",
 					},
 					{
-						X:    mock.V(*vector.New(0, 75)),
+						X:    mock.V(*vnd.New(0, 75)),
 						Data: "baz",
 					},
 				},
@@ -247,15 +249,15 @@ func TestNew(t *testing.T) {
 			opts: O[mock.P]{
 				Data: []mock.P{
 					{
-						X:    mock.V(*vector.New(-100, 1)),
+						X:    mock.V(*vnd.New(-100, 1)),
 						Data: "foo",
 					},
 					{
-						X:    mock.V(*vector.New(1, 50)),
+						X:    mock.V(*vnd.New(1, 50)),
 						Data: "bar",
 					},
 					{
-						X:    mock.V(*vector.New(0, 75)),
+						X:    mock.V(*vnd.New(0, 75)),
 						Data: "baz",
 					},
 				},
@@ -317,7 +319,7 @@ func TestHoare(t *testing.T) {
 		pivot int
 		low   int
 		high  int
-		less  func(a point.V, b point.V) bool
+		less  func(a vector.V, b vector.V) bool
 
 		want result
 	}
@@ -327,18 +329,18 @@ func TestHoare(t *testing.T) {
 			name: "Trivial",
 			data: []mock.P{
 				mock.P{
-					X:    mock.V(*vector.New(100, 80)),
+					X:    mock.V(*vnd.New(100, 80)),
 					Data: "foo",
 				},
 			},
 			pivot: 0,
 			low:   0,
 			high:  1,
-			less:  util.Cmp(point.AXIS_X).Less,
+			less:  vector.Comparator(vector.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
-						X:    mock.V(*vector.New(100, 80)),
+						X:    mock.V(*vnd.New(100, 80)),
 						Data: "foo",
 					},
 				},
@@ -360,7 +362,7 @@ func TestHoare(t *testing.T) {
 			pivot: 0,
 			low:   0,
 			high:  2,
-			less:  util.Cmp(point.AXIS_X).Less,
+			less:  vector.Comparator(vector.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -390,7 +392,7 @@ func TestHoare(t *testing.T) {
 			pivot: 0,
 			low:   0,
 			high:  2,
-			less:  util.Cmp(point.AXIS_X).Less,
+			less:  vector.Comparator(vector.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -424,7 +426,7 @@ func TestHoare(t *testing.T) {
 			pivot: 1,
 			low:   0,
 			high:  3,
-			less:  util.Cmp(point.AXIS_X).Less,
+			less:  vector.Comparator(vector.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -462,7 +464,7 @@ func TestHoare(t *testing.T) {
 			pivot: 2,
 			low:   1,
 			high:  3,
-			less:  util.Cmp(point.AXIS_X).Less,
+			less:  vector.Comparator(vector.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -500,7 +502,7 @@ func TestHoare(t *testing.T) {
 			pivot: 1,
 			low:   0,
 			high:  5,
-			less:  util.Cmp(point.AXIS_X).Less,
+			less:  vector.Comparator(vector.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{X: mock.U(50)},

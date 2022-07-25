@@ -4,16 +4,17 @@ import (
 	"github.com/downflux/go-kd/x/internal/node"
 	"github.com/downflux/go-kd/x/internal/node/tree"
 	"github.com/downflux/go-kd/x/point"
+	"github.com/downflux/go-kd/x/vector"
 )
 
 type O[p point.P] struct {
 	Data []p
-	K    point.D
+	K    vector.D
 	N    int
 }
 
 type T[p point.P] struct {
-	k    point.D
+	k    vector.D
 	n    int
 	data []p
 

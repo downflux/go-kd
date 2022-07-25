@@ -2,6 +2,7 @@ package node
 
 import (
 	"github.com/downflux/go-kd/x/point"
+	"github.com/downflux/go-kd/x/vector"
 )
 
 type N[T point.P] interface {
@@ -17,8 +18,8 @@ type N[T point.P] interface {
 	// does not include data from child nodes.
 	Data() []T
 
-	Pivot() point.V
-	Axis() point.D
+	Pivot() vector.V
+	Axis() vector.D
 	Leaf() bool
 	Nil() bool
 }
