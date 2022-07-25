@@ -1,6 +1,7 @@
 package vector
 
 import (
+	"github.com/downflux/go-geometry/epsilon"
 	"github.com/downflux/go-geometry/nd/vector"
 )
 
@@ -37,3 +38,8 @@ func (c Comparator) Less(v V, u V) bool { return v.X(D(c)) < u.X(D(c)) }
 
 func SquaredMagnitude(v V) float64 { return vector.SquaredMagnitude(convert(v)) }
 func Sub(v V, u V) V               { return internal(vector.Sub(convert(v), convert(u))) }
+
+func Within(v V, u V) bool { return vector.Within(convert(v), convert(u)) }
+func WithinEpsilon(v V, u V, e epsilon.E) bool {
+	return vector.WithinEpsilon(convert(v), convert(u), e)
+}

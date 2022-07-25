@@ -9,7 +9,7 @@ import (
 	"github.com/downflux/go-kd/x/vector"
 )
 
-func path[T point.P](n node.N[T], v vector.V) []node.N[T] {
+func path[T point.P](n node.N[T], p vector.V) []node.N[T] {
 	if n.Nil() {
 		return nil
 	}
@@ -21,10 +21,10 @@ func path[T point.P](n node.N[T], v vector.V) []node.N[T] {
 	// we are always continuing to the leaf ndoe. This is necessary for
 	// finding multiple closest neighbors, as we care about points in the
 	// tree which do not have to coincide with the point coordinates.
-	if vector.Comparator(n.Axis()).Less(v, n.Pivot()) {
-		return append(path(n.L(), v), n)
+	if vector.Comparator(n.Axis()).Less(p, n.Pivot()) {
+		return append(path(n.L(), p), n)
 	}
-	return append(path(n.R(), v), n)
+	return append(path(n.R(), p), n)
 }
 
 func KNN[T point.P](n node.N[T], p vector.V, k int) []T {
@@ -39,20 +39,22 @@ func KNN[T point.P](n node.N[T], p vector.V, k int) []T {
 }
 
 func knn[T point.P](n node.N[T], p vector.V, q *pq.PQ[T]) {
-	if n.Nil() {
-		return
-	}
 
 	for _, n := range path[T](n, p) {
-		if d := vector.SquaredMagnitude(
-			vector.Sub(p, n.Pivot())); !q.Full() || d < q.Priority() {
+		for _, datum := range n.Data() {
+			if d := vector.SquaredMagnitude(
+				vector.Sub(p, datum.P())); !q.Full() || d < q.Priority() {
+				q.Push(datum, d)
+			}
 		}
 
-		if q.Priority() > math.Abs(p.X(n.Axis())-n.Pivot().X(n.Axis())) {
-			if vector.Comparator(n.Axis()).Less(p, n.Pivot()) {
-				knn(n.R(), p, q)
-			} else {
-				knn(n.L(), p, q)
+		if !n.Leaf() {
+			if q.Priority() > math.Abs(p.X(n.Axis())-n.Pivot().X(n.Axis())) {
+				if vector.Comparator(n.Axis()).Less(p, n.Pivot()) {
+					knn(n.R(), p, q)
+				} else {
+					knn(n.L(), p, q)
+				}
 			}
 		}
 	}
