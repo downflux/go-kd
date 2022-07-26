@@ -27,6 +27,7 @@ func TestKNN(t *testing.T) {
 			name: "Trivial",
 			n: tree.New[mock.P](tree.O[mock.P]{
 				Data: nil,
+				K:    1,
 				N:    10,
 			}),
 			p:    mock.V(*vnd.New(100, 200)),

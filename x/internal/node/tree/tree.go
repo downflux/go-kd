@@ -35,7 +35,7 @@ type N[T point.P] struct {
 
 // New recursively constructs a node object given the input data.
 func New[T point.P](o O[T]) *N[T] {
-	if o.Axis > o.K {
+	if o.Axis >= o.K {
 		panic(fmt.Sprintf("given node dimension greater than vector dimension: %v > %v", o.Axis, o.K))
 	}
 	if o.N < 1 {

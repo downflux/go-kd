@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	kRange    = []vector.D{2, 10, 100, 500}
-	nRange    = []int{1e3, 1e4, 1e5, 1e6}
-	sizeRange = []int{1, 4, 16, 64}
+	kRange    = []vector.D{2, 10, 100}
+	nRange    = []int{1e4, 1e5, 1e6}
+	sizeRange = []int{1, 4, 16, 64, 128}
 )
 
 func rv(k vector.D, min float64, max float64) mock.V {
@@ -76,6 +76,44 @@ func TestNew(t *testing.T) {
 			})
 			if !util.Validate(tree.root) {
 				t.Errorf("validate() = %v, want = %v", false, true)
+			}
+		})
+	}
+}
+
+func BenchmarkKNN(b *testing.B) {
+	type config struct {
+		name string
+		t    *T[*mock.P]
+
+		knn int
+	}
+
+	var configs []config
+	for _, k := range kRange {
+		for _, n := range nRange {
+			ps := generate(n, k)
+			for _, f := range []float64{0.05, 0.1, 0.25} {
+				for _, size := range sizeRange {
+					knn := int(float64(n) * f)
+					configs = append(configs, config{
+						name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v/KNN=%v", k, n, size, f),
+						t: New[*mock.P](O[*mock.P]{
+							Data: ps,
+							K:    k,
+							N:    size,
+						}),
+						knn: knn,
+					})
+				}
+			}
+		}
+	}
+
+	for _, c := range configs {
+		b.Run(c.name, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				KNN[*mock.P](c.t, mock.V(make([]float64, c.t.k)), c.knn)
 			}
 		})
 	}

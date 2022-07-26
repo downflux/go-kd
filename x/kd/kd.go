@@ -1,28 +1,29 @@
 package kd
 
 import (
+	"github.com/downflux/go-kd/x/internal/knn"
 	"github.com/downflux/go-kd/x/internal/node"
 	"github.com/downflux/go-kd/x/internal/node/tree"
 	"github.com/downflux/go-kd/x/point"
 	"github.com/downflux/go-kd/x/vector"
 )
 
-type O[p point.P] struct {
-	Data []p
+type O[U point.P] struct {
+	Data []U
 	K    vector.D
 	N    int
 }
 
-type T[p point.P] struct {
+type T[U point.P] struct {
 	k    vector.D
 	n    int
-	data []p
+	data []U
 
-	root node.N[p]
+	root node.N[U]
 }
 
-func New[p point.P](o O[p]) *T[p] {
-	data := make([]p, len(o.Data))
+func New[U point.P](o O[U]) *T[U] {
+	data := make([]U, len(o.Data))
 	l := copy(data, o.Data)
 	if l != len(o.Data) {
 		panic("could not copy data into k-D tree")
@@ -34,11 +35,11 @@ func New[p point.P](o O[p]) *T[p] {
 		panic("k-D tree minimum leaf node size must be positive")
 	}
 
-	t := &T[p]{
+	t := &T[U]{
 		k:    o.K,
 		n:    o.N,
 		data: data,
-		root: tree.New[p](tree.O[p]{
+		root: tree.New[U](tree.O[U]{
 			Data: data,
 			Axis: 0,
 			K:    o.K,
@@ -50,3 +51,5 @@ func New[p point.P](o O[p]) *T[p] {
 
 	return t
 }
+
+func KNN[U point.P](t *T[U], p vector.V, k int) []U { return knn.KNN(t.root, p, k) }
