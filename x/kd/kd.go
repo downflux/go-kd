@@ -24,8 +24,7 @@ type T[U point.P] struct {
 
 func New[U point.P](o O[U]) *T[U] {
 	data := make([]U, len(o.Data))
-	l := copy(data, o.Data)
-	if l != len(o.Data) {
+	if l := copy(data, o.Data); l != len(o.Data) {
 		panic("could not copy data into k-D tree")
 	}
 	if o.K < 1 {
