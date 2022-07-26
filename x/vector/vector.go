@@ -27,17 +27,23 @@ func convert(v V) vector.V {
 	return u
 }
 
-type internal vector.V
+type Buffer []float64
 
-func (v internal) X(d D) float64 { return vector.V(v).X(vector.D(d)) }
-func (v internal) D() D          { return D(vector.V(v).Dimension()) }
+func (v Buffer) X(d D) float64 { return v[d] }
+func (v Buffer) D() D          { return D(len(v)) }
 
 type Comparator D
 
 func (c Comparator) Less(v V, u V) bool { return v.X(D(c)) < u.X(D(c)) }
 
 func SquaredMagnitude(v V) float64 { return vector.SquaredMagnitude(convert(v)) }
-func Sub(v V, u V) V               { return internal(vector.Sub(convert(v), convert(u))) }
+
+func Sub(v V, u V) V { return Buffer(vector.Sub(convert(v), convert(u))) }
+func SubBuf(v V, u V, buf Buffer) {
+	for i := D(0); i < v.D(); i++ {
+		buf[i] = v.X(i) - u.X(i)
+	}
+}
 
 func Within(v V, u V) bool { return vector.Within(convert(v), convert(u)) }
 func WithinEpsilon(v V, u V, e epsilon.E) bool {

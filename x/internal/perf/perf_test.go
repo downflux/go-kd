@@ -32,9 +32,9 @@ func BenchmarkKNN(b *testing.B) {
 			// KNN factor does not matter.
 			configs = append(configs, config{
 				name: fmt.Sprintf("BruteForce/K=%v/N=%v", k, n),
-				t: bruteforce.New[*mock.P](ps),
-				p: mock.V(make([]float64, k)),
-				knn: n,
+				t:    bruteforce.New[*mock.P](ps),
+				p:    mock.V(make([]float64, k)),
+				knn:  n,
 			})
 
 			for _, f := range []float64{0.05, 0.1, 0.25} {

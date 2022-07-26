@@ -29,7 +29,7 @@ func path[T point.P](n node.N[T], p vector.V) []node.N[T] {
 
 func KNN[T point.P](n node.N[T], p vector.V, k int) []T {
 	q := pq.New[T](k)
-	knn(n, p, q)
+	knn(n, p, q, vector.Buffer(make([]float64, p.D())))
 
 	ps := make([]T, q.Len())
 	for i := q.Len() - 1; i >= 0; i-- {
@@ -38,12 +38,11 @@ func KNN[T point.P](n node.N[T], p vector.V, k int) []T {
 	return ps
 }
 
-func knn[T point.P](n node.N[T], p vector.V, q *pq.PQ[T]) {
-
+func knn[T point.P](n node.N[T], p vector.V, q *pq.PQ[T], buf vector.Buffer) {
 	for _, n := range path[T](n, p) {
 		for _, datum := range n.Data() {
-			if d := vector.SquaredMagnitude(
-				vector.Sub(p, datum.P())); !q.Full() || d < q.Priority() {
+			vector.SubBuf(p, datum.P(), buf)
+			if d := vector.SquaredMagnitude(buf); !q.Full() || d < q.Priority() {
 				q.Push(datum, d)
 			}
 		}
@@ -51,9 +50,9 @@ func knn[T point.P](n node.N[T], p vector.V, q *pq.PQ[T]) {
 		if !n.Leaf() {
 			if q.Priority() > math.Abs(p.X(n.Axis())-n.Pivot().X(n.Axis())) {
 				if vector.Comparator(n.Axis()).Less(p, n.Pivot()) {
-					knn(n.R(), p, q)
+					knn(n.R(), p, q, buf)
 				} else {
-					knn(n.L(), p, q)
+					knn(n.L(), p, q, buf)
 				}
 			}
 		}
