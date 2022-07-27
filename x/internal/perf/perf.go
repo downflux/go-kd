@@ -1,9 +1,9 @@
 package perf
 
 import (
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/kd"
 	"github.com/downflux/go-kd/x/point"
-	"github.com/downflux/go-kd/x/vector"
 )
 
 // I is a mock interface used for faciliating benchmark tests. This

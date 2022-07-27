@@ -5,11 +5,11 @@ import (
 	"testing"
 	"unsafe"
 
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/perf/bruteforce"
 	"github.com/downflux/go-kd/x/internal/perf/util"
 	"github.com/downflux/go-kd/x/kd"
 	"github.com/downflux/go-kd/x/point/mock"
-	"github.com/downflux/go-kd/x/vector"
 )
 
 var _ I[*mock.P] = &T[*mock.P]{}
@@ -33,7 +33,7 @@ func BenchmarkKNN(b *testing.B) {
 			configs = append(configs, config{
 				name: fmt.Sprintf("BruteForce/K=%v/N=%v", k, n),
 				t:    bruteforce.New[*mock.P](ps),
-				p:    mock.V(make([]float64, k)),
+				p:    vector.V(make([]float64, k)),
 				knn:  n,
 			})
 
@@ -51,7 +51,7 @@ func BenchmarkKNN(b *testing.B) {
 								N:    size,
 							}),
 						)),
-						p:   mock.V(make([]float64, k)),
+						p:   vector.V(make([]float64, k)),
 						knn: knn,
 					})
 				}

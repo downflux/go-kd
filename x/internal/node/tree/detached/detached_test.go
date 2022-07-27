@@ -18,7 +18,7 @@ func equal[T point.P](n *N[T], m *N[T]) bool {
 	if n == nil || m == nil {
 		return n == m
 	}
-	return vector.Within(n.Pivot(), m.Pivot()) && equal(n.left, m.left) && equal(n.right, m.right)
+	return vnd.Within(n.Pivot(), m.Pivot()) && equal(n.left, m.left) && equal(n.right, m.right)
 }
 
 func TestNew(t *testing.T) {
@@ -75,7 +75,7 @@ func TestNew(t *testing.T) {
 				Axis: 0,
 			},
 			want: &N[mock.P]{
-				pivot: mock.U(-100),
+				pivot: mock.U(1),
 				axis:  0,
 				left: &N[mock.P]{
 					axis: 0,
@@ -266,7 +266,7 @@ func TestHoare(t *testing.T) {
 		pivot int
 		low   int
 		high  int
-		less  func(a vector.V, b vector.V) bool
+		less  func(a vnd.V, b vnd.V) bool
 
 		want result
 	}
@@ -283,7 +283,7 @@ func TestHoare(t *testing.T) {
 			pivot: 0,
 			low:   0,
 			high:  1,
-			less:  vector.Comparator(vector.AXIS_X).Less,
+			less:  vector.Comparator(vnd.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -309,7 +309,7 @@ func TestHoare(t *testing.T) {
 			pivot: 0,
 			low:   0,
 			high:  2,
-			less:  vector.Comparator(vector.AXIS_X).Less,
+			less:  vector.Comparator(vnd.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -339,7 +339,7 @@ func TestHoare(t *testing.T) {
 			pivot: 0,
 			low:   0,
 			high:  2,
-			less:  vector.Comparator(vector.AXIS_X).Less,
+			less:  vector.Comparator(vnd.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -373,7 +373,7 @@ func TestHoare(t *testing.T) {
 			pivot: 1,
 			low:   0,
 			high:  3,
-			less:  vector.Comparator(vector.AXIS_X).Less,
+			less:  vector.Comparator(vnd.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -411,7 +411,7 @@ func TestHoare(t *testing.T) {
 			pivot: 2,
 			low:   1,
 			high:  3,
-			less:  vector.Comparator(vector.AXIS_X).Less,
+			less:  vector.Comparator(vnd.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -449,7 +449,7 @@ func TestHoare(t *testing.T) {
 			pivot: 1,
 			low:   0,
 			high:  5,
-			less:  vector.Comparator(vector.AXIS_X).Less,
+			less:  vector.Comparator(vnd.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{X: mock.U(50)},

@@ -4,8 +4,8 @@ import (
 	"math"
 	"sort"
 
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/point"
-	"github.com/downflux/go-kd/x/vector"
 )
 
 type L[T point.P] []T

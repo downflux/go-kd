@@ -319,7 +319,7 @@ func TestHoare(t *testing.T) {
 		pivot int
 		low   int
 		high  int
-		less  func(a vector.V, b vector.V) bool
+		less  func(a vnd.V, b vnd.V) bool
 
 		want result
 	}
@@ -336,7 +336,7 @@ func TestHoare(t *testing.T) {
 			pivot: 0,
 			low:   0,
 			high:  1,
-			less:  vector.Comparator(vector.AXIS_X).Less,
+			less:  vector.Comparator(vnd.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -362,7 +362,7 @@ func TestHoare(t *testing.T) {
 			pivot: 0,
 			low:   0,
 			high:  2,
-			less:  vector.Comparator(vector.AXIS_X).Less,
+			less:  vector.Comparator(vnd.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -392,7 +392,7 @@ func TestHoare(t *testing.T) {
 			pivot: 0,
 			low:   0,
 			high:  2,
-			less:  vector.Comparator(vector.AXIS_X).Less,
+			less:  vector.Comparator(vnd.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -426,7 +426,7 @@ func TestHoare(t *testing.T) {
 			pivot: 1,
 			low:   0,
 			high:  3,
-			less:  vector.Comparator(vector.AXIS_X).Less,
+			less:  vector.Comparator(vnd.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -464,7 +464,7 @@ func TestHoare(t *testing.T) {
 			pivot: 2,
 			low:   1,
 			high:  3,
-			less:  vector.Comparator(vector.AXIS_X).Less,
+			less:  vector.Comparator(vnd.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{
@@ -502,7 +502,7 @@ func TestHoare(t *testing.T) {
 			pivot: 1,
 			low:   0,
 			high:  5,
-			less:  vector.Comparator(vector.AXIS_X).Less,
+			less:  vector.Comparator(vnd.AXIS_X).Less,
 			want: result{
 				data: []mock.P{
 					mock.P{X: mock.U(50)},

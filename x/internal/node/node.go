@@ -1,8 +1,8 @@
 package node
 
 import (
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/point"
-	"github.com/downflux/go-kd/x/vector"
 )
 
 type N[T point.P] interface {

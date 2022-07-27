@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/node/util"
 	"github.com/downflux/go-kd/x/point/mock"
-	"github.com/downflux/go-kd/x/vector"
 
 	putil "github.com/downflux/go-kd/x/internal/perf/util"
 )

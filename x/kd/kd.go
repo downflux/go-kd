@@ -1,11 +1,11 @@
 package kd
 
 import (
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/knn"
 	"github.com/downflux/go-kd/x/internal/node"
 	"github.com/downflux/go-kd/x/internal/node/tree/detached"
 	"github.com/downflux/go-kd/x/point"
-	"github.com/downflux/go-kd/x/vector"
 )
 
 type O[U point.P] struct {

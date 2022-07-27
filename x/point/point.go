@@ -1,7 +1,7 @@
 package point
 
 import (
-	"github.com/downflux/go-kd/x/vector"
+	"github.com/downflux/go-geometry/nd/vector"
 )
 
 type P interface {

@@ -7,9 +7,11 @@ import (
 	"github.com/downflux/go-kd/x/point"
 	"github.com/downflux/go-kd/x/point/pq"
 	"github.com/downflux/go-kd/x/vector"
+
+	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
-func path[T point.P](n node.N[T], p vector.V) []node.N[T] {
+func path[T point.P](n node.N[T], p vnd.V) []node.N[T] {
 	if n.Nil() {
 		return nil
 	}
@@ -27,9 +29,9 @@ func path[T point.P](n node.N[T], p vector.V) []node.N[T] {
 	return append(path(n.R(), p), n)
 }
 
-func KNN[T point.P](n node.N[T], p vector.V, k int) []T {
+func KNN[T point.P](n node.N[T], p vnd.V, k int) []T {
 	q := pq.New[T](k)
-	knn(n, p, q, vector.Buffer(make([]float64, p.D())))
+	knn(n, p, q, vnd.V(make([]float64, p.Dimension())))
 
 	ps := make([]T, q.Len())
 	for i := q.Len() - 1; i >= 0; i-- {
@@ -38,11 +40,11 @@ func KNN[T point.P](n node.N[T], p vector.V, k int) []T {
 	return ps
 }
 
-func knn[T point.P](n node.N[T], p vector.V, q *pq.PQ[T], buf vector.Buffer) {
+func knn[T point.P](n node.N[T], p vnd.V, q *pq.PQ[T], buf vnd.V) {
 	for _, n := range path[T](n, p) {
 		for _, datum := range n.Data() {
-			vector.SubBuf(p, datum.P(), buf)
-			if d := vector.SquaredMagnitude(buf); !q.Full() || d < q.Priority() {
+			vnd.SubBuf(p, datum.P(), buf)
+			if d := vnd.SquaredMagnitude(buf); !q.Full() || d < q.Priority() {
 				q.Push(datum, d)
 			}
 		}

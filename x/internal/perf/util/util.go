@@ -4,10 +4,8 @@ import (
 	"math/rand"
 	"runtime"
 
+	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/point/mock"
-	"github.com/downflux/go-kd/x/vector"
-
-	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
 var (
@@ -16,12 +14,12 @@ var (
 	SizeRange = []int{1, 4, 16, 64, 128}
 )
 
-func RV(k vector.D, min float64, max float64) mock.V {
+func RV(k vector.D, min float64, max float64) vector.V {
 	var xs []float64
 	for i := 0; i < int(k); i++ {
 		xs = append(xs, rand.Float64()*(max-min)+min)
 	}
-	return mock.V(vnd.V(xs))
+	return vector.V(xs)
 }
 
 func Generate(n int, k vector.D) []*mock.P {
