@@ -9,9 +9,9 @@ import (
 )
 
 var (
-	KRange    = []vector.D{2, 10, 100}
-	NRange    = []int{1e4, 1e5, 1e6}
-	SizeRange = []int{1, 4, 16, 64, 128}
+	KRange    = []vector.D{2, 32, 256}
+	NRange    = []int{1e3, 1e4, 1e5, 1e6}
+	SizeRange = []int{1, 16, 128, 512}
 )
 
 func RV(k vector.D, min float64, max float64) vector.V {
