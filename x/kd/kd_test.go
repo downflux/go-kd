@@ -8,7 +8,7 @@ import (
 	"github.com/downflux/go-kd/x/internal/node/util"
 	"github.com/downflux/go-kd/x/point/mock"
 
-	putil "github.com/downflux/go-kd/x/internal/perf/util"
+	putil "github.com/downflux/go-kd/x/internal/validation/util"
 )
 
 func TestNew(t *testing.T) {
