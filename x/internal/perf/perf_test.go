@@ -6,19 +6,19 @@ import (
 	"unsafe"
 
 	"github.com/downflux/go-geometry/nd/vector"
-	"github.com/downflux/go-kd/x/internal/perf/bruteforce"
 	"github.com/downflux/go-kd/x/internal/perf/util"
 	"github.com/downflux/go-kd/x/kd"
-	"github.com/downflux/go-kd/x/point/mock"
-)
+	"github.com/downflux/go-kd/x/kd/mock"
+	"github.com/downflux/go-kd/x/kd/mock/bruteforce"
+	"github.com/downflux/go-kd/x/kd/mock/wrapper"
 
-var _ I[*mock.P] = &T[*mock.P]{}
-var _ I[*mock.P] = &bruteforce.L[*mock.P]{}
+	pmock "github.com/downflux/go-kd/x/point/mock"
+)
 
 func BenchmarkKNN(b *testing.B) {
 	type config struct {
 		name string
-		t    I[*mock.P]
+		t    mock.I[*pmock.P]
 		p    vector.V
 		knn  int
 	}
@@ -32,7 +32,7 @@ func BenchmarkKNN(b *testing.B) {
 			// KNN factor does not matter.
 			configs = append(configs, config{
 				name: fmt.Sprintf("BruteForce/K=%v/N=%v", k, n),
-				t:    bruteforce.New[*mock.P](ps),
+				t:    bruteforce.New[*pmock.P](ps),
 				p:    vector.V(make([]float64, k)),
 				knn:  n,
 			})
@@ -44,8 +44,8 @@ func BenchmarkKNN(b *testing.B) {
 
 					configs = append(configs, config{
 						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/KNN=%v", k, n, size, f),
-						t: (*T[*mock.P])(unsafe.Pointer(
-							kd.New[*mock.P](kd.O[*mock.P]{
+						t: (*wrapper.T[*pmock.P])(unsafe.Pointer(
+							kd.New[*pmock.P](kd.O[*pmock.P]{
 								Data: ps,
 								K:    k,
 								N:    size,
