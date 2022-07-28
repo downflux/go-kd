@@ -6,10 +6,11 @@ import (
 
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/node/util"
+	"github.com/downflux/go-kd/x/kd/mock/bruteforce"
 	"github.com/downflux/go-kd/x/point/mock"
 	"github.com/google/go-cmp/cmp"
 
-	putil "github.com/downflux/go-kd/x/internal/validation/util"
+	putil "github.com/downflux/go-kd/x/internal/perf/util"
 )
 
 func TestNew(t *testing.T) {
@@ -100,6 +101,51 @@ func TestData(t *testing.T) {
 			})
 			got := Data(kd)
 			if diff := cmp.Diff(c.want, got); diff != "" {
+				t.Errorf("KNN mismatch (-want +got):\n%v", diff)
+			}
+		})
+	}
+}
+func TestKNN(t *testing.T) {
+	type config struct {
+		name string
+		k    vector.D
+		n    int
+
+		size int
+	}
+
+	var configs []config
+	for _, k := range putil.KRange {
+		for _, n := range putil.NRange {
+			for _, size := range putil.SizeRange {
+				configs = append(configs, config{
+					name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v", k, n, size),
+					k:    k,
+					n:    n,
+					size: size,
+				})
+			}
+		}
+	}
+
+	for _, c := range configs {
+		ps := putil.Generate(c.n, c.k)
+		t.Run(c.name, func(t *testing.T) {
+			knn := int(float64(c.n) * 0.1)
+			p := vector.V(make([]float64, c.k))
+
+			got := KNN(
+				New[*mock.P](O[*mock.P]{
+					Data: ps,
+					K:    c.k,
+					N:    c.size,
+				}),
+				p,
+				knn,
+			)
+			want := bruteforce.New[*mock.P](ps).KNN(p, knn)
+			if diff := cmp.Diff(want, got); diff != "" {
 				t.Errorf("KNN mismatch (-want +got):\n%v", diff)
 			}
 		})

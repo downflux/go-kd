@@ -6,7 +6,7 @@ import (
 	"unsafe"
 
 	"github.com/downflux/go-geometry/nd/vector"
-	"github.com/downflux/go-kd/x/internal/validation/util"
+	"github.com/downflux/go-kd/x/internal/perf/util"
 	"github.com/downflux/go-kd/x/kd"
 	"github.com/downflux/go-kd/x/kd/mock"
 	"github.com/downflux/go-kd/x/kd/mock/bruteforce"
