@@ -15,6 +15,43 @@ import (
 	pmock "github.com/downflux/go-kd/x/point/mock"
 )
 
+func BenchmarkNew(b *testing.B) {
+	type config struct {
+		name string
+		k    vector.D
+		n    int
+
+		size int
+	}
+
+	var configs []config
+	for _, k := range util.KRange {
+		for _, n := range util.NRange {
+			for _, size := range util.SizeRange {
+				configs = append(configs, config{
+					name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v", k, n, size),
+					k:    k,
+					n:    n,
+					size: size,
+				})
+			}
+		}
+	}
+
+	for _, c := range configs {
+		ps := util.Generate(c.n, c.k)
+		b.Run(c.name, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				kd.New[*pmock.P](kd.O[*pmock.P]{
+					Data: ps,
+					K:    c.k,
+					N:    c.size,
+				})
+			}
+		})
+	}
+}
+
 func BenchmarkKNN(b *testing.B) {
 	type config struct {
 		name string
