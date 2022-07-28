@@ -1,7 +1,6 @@
 package bruteforce
 
 import (
-	"fmt"
 	"math"
 	"sort"
 
@@ -26,12 +25,6 @@ func (m *L[T]) KNN(p vector.V, k int) []T {
 		p:    p,
 	})
 
-	data := []T(*m)[0:int(math.Min(float64(k), float64(len(*m))-1))]
-	for _, d := range data {
-		fmt.Printf("DEBUG: p == %v, d == %v\n", d.P(), vector.SquaredMagnitude(
-			vector.Sub(d.P(), p),
-		))
-	}
 	return []T(*m)[0:int(math.Min(float64(k), float64(len(*m))-1))]
 }
 
