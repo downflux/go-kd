@@ -5,7 +5,7 @@ import (
 
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/node"
-	"github.com/downflux/go-kd/x/internal/node/tree"
+	"github.com/downflux/go-kd/x/internal/node/tree/detached"
 	"github.com/downflux/go-kd/x/point"
 	"github.com/downflux/go-kd/x/point/mock"
 	"github.com/google/go-cmp/cmp"
@@ -23,7 +23,7 @@ func TestKNN(t *testing.T) {
 	configs := []config[mock.P]{
 		{
 			name: "Trivial",
-			n: tree.New[mock.P](tree.O[mock.P]{
+			n: detached.New[mock.P](detached.O[mock.P]{
 				Data: nil,
 				K:    1,
 				N:    10,
@@ -33,15 +33,29 @@ func TestKNN(t *testing.T) {
 			want: []mock.P{},
 		},
 		{
+			name: "SmallD",
+			n: detached.New[mock.P](detached.O[mock.P]{
+				Data: []mock.P{
+					mock.P{X: mock.U(0.1)},
+					mock.P{X: mock.U(0.01)},
+				},
+				K: 1,
+				N: 10,
+			}),
+			p: mock.U(0),
+			k: 1,
+			want: []mock.P{
+				mock.P{X: mock.U(0.01)},
+			},
+		},
+		{
 			name: "Simple",
-			n: tree.New[mock.P](tree.O[mock.P]{
+			n: detached.New[mock.P](detached.O[mock.P]{
 				Data: []mock.P{
 					mock.P{X: mock.U(10)},
 				},
-				Low:  0,
-				High: 1,
-				K:    1,
-				N:    10,
+				K: 1,
+				N: 10,
 			}),
 			p: mock.U(-1000),
 			k: 100,
@@ -51,14 +65,12 @@ func TestKNN(t *testing.T) {
 		},
 		{
 			name: "Simple/2D",
-			n: tree.New[mock.P](tree.O[mock.P]{
+			n: detached.New[mock.P](detached.O[mock.P]{
 				Data: []mock.P{
 					mock.P{X: mock.V(*vector.New(100, 1))},
 				},
-				Low:  0,
-				High: 1,
-				K:    2,
-				N:    1,
+				K: 2,
+				N: 1,
 			}),
 			p: mock.V(*vector.New(0, -100)),
 			k: 100,
@@ -68,17 +80,15 @@ func TestKNN(t *testing.T) {
 		},
 		{
 			name: "Simple/MultiK",
-			n: tree.New[mock.P](tree.O[mock.P]{
+			n: detached.New[mock.P](detached.O[mock.P]{
 				Data: []mock.P{
 					mock.P{X: mock.U(101)},
 					mock.P{X: mock.U(102)},
 					mock.P{X: mock.U(103)},
 					mock.P{X: mock.U(99)},
 				},
-				Low:  0,
-				High: 4,
-				K:    1,
-				N:    1,
+				K: 1,
+				N: 1,
 			}),
 			p: mock.U(100),
 			k: 2,
@@ -89,17 +99,15 @@ func TestKNN(t *testing.T) {
 		},
 		{
 			name: "Simple/MultiK/Degenerate",
-			n: tree.New[mock.P](tree.O[mock.P]{
+			n: detached.New[mock.P](detached.O[mock.P]{
 				Data: []mock.P{
 					mock.P{X: mock.U(99), Data: "A"},
 					mock.P{X: mock.U(99), Data: "B"},
 					mock.P{X: mock.U(99), Data: "C"},
 					mock.P{X: mock.U(99), Data: "D"},
 				},
-				Low:  0,
-				High: 4,
-				K:    1,
-				N:    1,
+				K: 1,
+				N: 1,
 			}),
 			p: mock.U(100),
 			k: 2,
@@ -110,17 +118,15 @@ func TestKNN(t *testing.T) {
 		},
 		{
 			name: "Simple/MultiK/2D/Degenerate",
-			n: tree.New[mock.P](tree.O[mock.P]{
+			n: detached.New[mock.P](detached.O[mock.P]{
 				Data: []mock.P{
 					mock.P{X: mock.V(*vector.New(99, 100)), Data: "A"},
 					mock.P{X: mock.V(*vector.New(99, 100)), Data: "B"},
 					mock.P{X: mock.V(*vector.New(99, 100)), Data: "C"},
 					mock.P{X: mock.V(*vector.New(99, 100)), Data: "D"},
 				},
-				Low:  0,
-				High: 4,
-				K:    2,
-				N:    1,
+				K: 2,
+				N: 1,
 			}),
 			p: mock.V(*vector.New(0, 0)),
 			k: 2,
@@ -134,7 +140,7 @@ func TestKNN(t *testing.T) {
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
 			got := KNN(c.n, c.p, c.k)
-			if diff := cmp.Diff(got, c.want); diff != "" {
+			if diff := cmp.Diff(c.want, got); diff != "" {
 				t.Errorf("KNN mismatch (-want +got):\n%v", diff)
 			}
 

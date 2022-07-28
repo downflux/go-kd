@@ -50,7 +50,8 @@ func knn[T point.P](n node.N[T], p vnd.V, q *pq.PQ[T], buf vnd.V) {
 		}
 
 		if !n.Leaf() {
-			if q.Priority() > math.Pow(vnd.Sub(p, n.Pivot()).X(n.Axis()), 2) {
+			vnd.SubBuf(p, n.Pivot(), buf)
+			if q.Priority() > math.Pow(buf.X(n.Axis()), 2) {
 				if vector.Comparator(n.Axis()).Less(p, n.Pivot()) {
 					knn(n.R(), p, q, buf)
 				} else {
