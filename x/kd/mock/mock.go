@@ -15,3 +15,4 @@ type I[U point.P] interface {
 type T[U point.P] kd.T[U]
 
 func (t *T[U]) KNN(p vector.V, k int) []U { return kd.KNN((*kd.T[U])(t), p, k) }
+func (t *T[U]) Data() []U                 { return kd.Data((*kd.T[U])(t)) }

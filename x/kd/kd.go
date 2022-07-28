@@ -15,9 +15,8 @@ type O[U point.P] struct {
 }
 
 type T[U point.P] struct {
-	k    vector.D
-	n    int
-	data []U
+	k vector.D
+	n int
 
 	root node.N[U]
 }
@@ -49,3 +48,26 @@ func New[U point.P](o O[U]) *T[U] {
 }
 
 func KNN[U point.P](t *T[U], p vector.V, k int) []U { return knn.KNN(t.root, p, k) }
+
+func Data[U point.P](t *T[U]) []U {
+	if t.root.Nil() {
+		return nil
+	}
+	var data []U
+
+	var n node.N[U]
+	open := []node.N[U]{t.root}
+	for len(open) > 0 {
+		n, open = open[0], open[1:]
+
+		data = append(data, n.Data()...)
+		if !n.L().Nil() {
+			open = append(open, n.L())
+		}
+		if !n.R().Nil() {
+			open = append(open, n.R())
+		}
+	}
+
+	return data
+}
