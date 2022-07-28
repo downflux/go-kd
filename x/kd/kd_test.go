@@ -99,7 +99,7 @@ func TestData(t *testing.T) {
 				N:    1,
 			})
 			got := Data(kd)
-			if diff := cmp.Diff(got, c.want); diff != "" {
+			if diff := cmp.Diff(c.want, got); diff != "" {
 				t.Errorf("KNN mismatch (-want +got):\n%v", diff)
 			}
 		})

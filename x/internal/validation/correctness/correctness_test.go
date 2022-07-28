@@ -54,11 +54,14 @@ func TestKNN(t *testing.T) {
 				knn,
 			)
 			want := l.KNN(p, knn)
-			if diff := cmp.Diff(got, want); diff != "" {
+			if diff := cmp.Diff(want, got); diff != "" {
 				t.Errorf("KNN mismatch (-want +got):\n%v", diff)
 				t.Errorf("printing data")
 				for _, p := range kd.Data(k) {
 					t.Errorf("k point: %v", p.P())
+				}
+				for i, p := range l.Data() {
+					t.Errorf("l point: i = %v, %v", i, p.P())
 				}
 			}
 		})
