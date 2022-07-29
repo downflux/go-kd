@@ -5,6 +5,7 @@ import (
 	"testing"
 	"unsafe"
 
+	"github.com/downflux/go-geometry/nd/hyperrectangle"
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/perf/util"
 	"github.com/downflux/go-kd/x/kd"
@@ -78,7 +79,6 @@ func BenchmarkKNN(b *testing.B) {
 				knn := int(float64(n) * f)
 
 				for _, size := range util.SizeRange {
-
 					configs = append(configs, config{
 						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/KNN=%v", k, n, size, f),
 						t: (*wrapper.T[*pmock.P])(unsafe.Pointer(
@@ -101,6 +101,55 @@ func BenchmarkKNN(b *testing.B) {
 		b.Run(c.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				c.t.KNN(c.p, c.knn)
+			}
+		})
+	}
+}
+
+func BenchmarkRangeSearch(b *testing.B) {
+	type config struct {
+		name string
+		t    mock.I[*pmock.P]
+		q    hyperrectangle.R
+	}
+
+	var configs []config
+	for _, k := range util.KRange {
+		for _, n := range util.NRange {
+			ps := util.Generate(n, k)
+
+			// Brute force approach sorts all data, meaning that the
+			// query range factor does not matter.
+			configs = append(configs, config{
+				name: fmt.Sprintf("BruteForce/K=%v/N=%v", k, n),
+				t:    bruteforce.New[*pmock.P](ps),
+				q:    util.RH(k, 1),
+			})
+
+			for _, f := range []float64{0.05, 0.1, 0.25} {
+				q := util.RH(k, f)
+
+				for _, size := range util.SizeRange {
+					configs = append(configs, config{
+						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/Coverage=%v", k, n, size, f),
+						t: (*wrapper.T[*pmock.P])(unsafe.Pointer(
+							kd.New[*pmock.P](kd.O[*pmock.P]{
+								Data: ps,
+								K:    k,
+								N:    size,
+							}),
+						)),
+						q: q,
+					})
+				}
+			}
+		}
+	}
+
+	for _, c := range configs {
+		b.Run(c.name, func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				c.t.RangeSearch(c.q)
 			}
 		})
 	}
