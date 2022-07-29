@@ -1,10 +1,12 @@
 package kd
 
 import (
+	"github.com/downflux/go-geometry/nd/hyperrectangle"
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/knn"
 	"github.com/downflux/go-kd/x/internal/node"
 	"github.com/downflux/go-kd/x/internal/node/tree"
+	"github.com/downflux/go-kd/x/internal/rangesearch"
 	"github.com/downflux/go-kd/x/point"
 )
 
@@ -48,6 +50,9 @@ func New[U point.P](o O[U]) *T[U] {
 }
 
 func KNN[U point.P](t *T[U], p vector.V, k int) []U { return knn.KNN(t.root, p, k) }
+func RangeSearch[U point.P](t *T[U], q hyperrectangle.R) []U {
+	return rangesearch.RangeSearch(t.root, q)
+}
 
 func Data[U point.P](t *T[U]) []U {
 	if t.root.Nil() {

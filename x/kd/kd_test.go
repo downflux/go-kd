@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/downflux/go-geometry/nd/hyperrectangle"
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/node/util"
 	"github.com/downflux/go-kd/x/kd/mock/bruteforce"
@@ -147,6 +148,51 @@ func TestKNN(t *testing.T) {
 			want := bruteforce.New[*mock.P](ps).KNN(p, knn)
 			if diff := cmp.Diff(want, got); diff != "" {
 				t.Errorf("KNN mismatch (-want +got):\n%v", diff)
+			}
+		})
+	}
+}
+
+func TestRangeSearch(t *testing.T) {
+	type config struct {
+		name string
+		k    vector.D
+		n    int
+		size int
+		q    hyperrectangle.R
+	}
+
+	var configs []config
+	for _, k := range putil.KRange {
+		for _, n := range putil.NRange {
+			for _, size := range putil.SizeRange {
+				configs = append(configs, config{
+					name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v", k, n, size),
+					k:    k,
+					n:    n,
+					size: size,
+				})
+			}
+		}
+	}
+
+	for _, c := range configs {
+		ps := putil.Generate(c.n, c.k)
+		t.Run(c.name, func(t *testing.T) {
+			q := putil.RH(c.k, 0.05)
+
+			got := RangeSearch(
+				New[*mock.P](O[*mock.P]{
+					Data: ps,
+					K:    c.k,
+					N:    c.size,
+				}),
+				q,
+			)
+			want := bruteforce.New[*mock.P](ps).RangeSearch(q)
+
+			if diff := cmp.Diff(want, got, putil.Transformer(vector.V(make([]float64, c.k)))); diff != "" {
+				t.Errorf("RangeSearch mismatch (-want +got):\n%v", diff)
 			}
 		})
 	}

@@ -5,7 +5,7 @@ import (
 
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/node"
-	"github.com/downflux/go-kd/x/internal/node/tree/detached"
+	"github.com/downflux/go-kd/x/internal/node/tree"
 	"github.com/downflux/go-kd/x/point"
 	"github.com/downflux/go-kd/x/point/mock"
 	"github.com/google/go-cmp/cmp"
@@ -23,7 +23,7 @@ func TestKNN(t *testing.T) {
 	configs := []config[mock.P]{
 		{
 			name: "Trivial",
-			n: detached.New[mock.P](detached.O[mock.P]{
+			n: tree.New[mock.P](tree.O[mock.P]{
 				Data: nil,
 				K:    1,
 				N:    10,
@@ -34,7 +34,7 @@ func TestKNN(t *testing.T) {
 		},
 		{
 			name: "SmallD",
-			n: detached.New[mock.P](detached.O[mock.P]{
+			n: tree.New[mock.P](tree.O[mock.P]{
 				Data: []mock.P{
 					mock.P{X: mock.U(0.1)},
 					mock.P{X: mock.U(0.01)},
@@ -50,7 +50,7 @@ func TestKNN(t *testing.T) {
 		},
 		{
 			name: "Simple",
-			n: detached.New[mock.P](detached.O[mock.P]{
+			n: tree.New[mock.P](tree.O[mock.P]{
 				Data: []mock.P{
 					mock.P{X: mock.U(10)},
 				},
@@ -65,7 +65,7 @@ func TestKNN(t *testing.T) {
 		},
 		{
 			name: "Simple/2D",
-			n: detached.New[mock.P](detached.O[mock.P]{
+			n: tree.New[mock.P](tree.O[mock.P]{
 				Data: []mock.P{
 					mock.P{X: mock.V(*vector.New(100, 1))},
 				},
@@ -80,7 +80,7 @@ func TestKNN(t *testing.T) {
 		},
 		{
 			name: "Simple/MultiK",
-			n: detached.New[mock.P](detached.O[mock.P]{
+			n: tree.New[mock.P](tree.O[mock.P]{
 				Data: []mock.P{
 					mock.P{X: mock.U(101)},
 					mock.P{X: mock.U(102)},
@@ -99,7 +99,7 @@ func TestKNN(t *testing.T) {
 		},
 		{
 			name: "Simple/MultiK/Degenerate",
-			n: detached.New[mock.P](detached.O[mock.P]{
+			n: tree.New[mock.P](tree.O[mock.P]{
 				Data: []mock.P{
 					mock.P{X: mock.U(99), Data: "A"},
 					mock.P{X: mock.U(99), Data: "B"},
@@ -118,7 +118,7 @@ func TestKNN(t *testing.T) {
 		},
 		{
 			name: "Simple/MultiK/2D/Degenerate",
-			n: detached.New[mock.P](detached.O[mock.P]{
+			n: tree.New[mock.P](tree.O[mock.P]{
 				Data: []mock.P{
 					mock.P{X: mock.V(*vector.New(99, 100)), Data: "A"},
 					mock.P{X: mock.V(*vector.New(99, 100)), Data: "B"},
