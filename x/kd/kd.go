@@ -49,9 +49,11 @@ func New[U point.P](o O[U]) *T[U] {
 	return t
 }
 
-func KNN[U point.P](t *T[U], p vector.V, k int) []U { return knn.KNN(t.root, p, k) }
-func RangeSearch[U point.P](t *T[U], q hyperrectangle.R) []U {
-	return rangesearch.RangeSearch(t.root, q)
+func KNN[U point.P](t *T[U], p vector.V, k int, f func(p U) bool) []U {
+	return knn.KNN(t.root, p, k, f)
+}
+func RangeSearch[U point.P](t *T[U], q hyperrectangle.R, f func(p U) bool) []U {
+	return rangesearch.RangeSearch(t.root, q, f)
 }
 
 func Data[U point.P](t *T[U]) []U {

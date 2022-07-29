@@ -7,11 +7,12 @@ package container
 import (
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 	"github.com/downflux/go-geometry/nd/vector"
+	"github.com/downflux/go-kd/x/filter"
 	"github.com/downflux/go-kd/x/point"
 )
 
 type C[T point.P] interface {
-	KNN(p vector.V, k int) []T
-	RangeSearch(q hyperrectangle.R) []T
+	KNN(p vector.V, k int, f filter.F[T]) []T
+	RangeSearch(q hyperrectangle.R, f filter.F[T]) []T
 	Data() []T
 }

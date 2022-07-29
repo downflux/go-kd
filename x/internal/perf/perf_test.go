@@ -100,7 +100,7 @@ func BenchmarkKNN(b *testing.B) {
 	for _, c := range configs {
 		b.Run(c.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				c.t.KNN(c.p, c.knn)
+				c.t.KNN(c.p, c.knn, util.TrivialFilter)
 			}
 		})
 	}
@@ -149,7 +149,7 @@ func BenchmarkRangeSearch(b *testing.B) {
 	for _, c := range configs {
 		b.Run(c.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				c.t.RangeSearch(c.q)
+				c.t.RangeSearch(c.q, util.TrivialFilter)
 			}
 		})
 	}

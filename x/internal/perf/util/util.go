@@ -19,6 +19,8 @@ var (
 	SizeRange = []int{1, 16, 128, 512}
 )
 
+func TrivialFilter(p *mock.P) bool { return true }
+
 // Transformer sorts a list of points.
 func Transformer(p vector.V) cmp.Option {
 	return cmp.Transformer("Sort", func(in []*mock.P) []*mock.P {

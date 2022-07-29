@@ -139,7 +139,7 @@ func TestKNN(t *testing.T) {
 
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
-			got := KNN(c.n, c.p, c.k)
+			got := KNN(c.n, c.p, c.k, func(mock.P) bool { return true })
 			if diff := cmp.Diff(c.want, got); diff != "" {
 				t.Errorf("KNN mismatch (-want +got):\n%v", diff)
 			}

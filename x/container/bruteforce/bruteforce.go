@@ -1,11 +1,11 @@
 package bruteforce
 
 import (
-	"math"
 	"sort"
 
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 	"github.com/downflux/go-geometry/nd/vector"
+	"github.com/downflux/go-kd/x/filter"
 	"github.com/downflux/go-kd/x/internal/perf/util"
 	"github.com/downflux/go-kd/x/point"
 )
@@ -21,19 +21,28 @@ func New[T point.P](d []T) *L[T] {
 	return &m
 }
 
-func (m *L[T]) KNN(p vector.V, k int) []T {
+func (m *L[T]) KNN(p vector.V, k int, f filter.F[T]) []T {
 	sort.Sort(util.L[T]{
 		Data: *m,
 		P:    p,
 	})
 
-	return []T(*m)[0:int(math.Min(float64(k), float64(len(*m))-1))]
+	var data []T
+	for _, p := range *m {
+		if f(p) {
+			data = append(data, p)
+		}
+		if len(data) == k {
+			return data
+		}
+	}
+	return data
 }
 
-func (m *L[T]) RangeSearch(q hyperrectangle.R) []T {
+func (m *L[T]) RangeSearch(q hyperrectangle.R, f filter.F[T]) []T {
 	var data []T
 	for _, p := range m.Data() {
-		if q.In(p.P()) {
+		if q.In(p.P()) && f(p) {
 			data = append(data, p)
 		}
 	}

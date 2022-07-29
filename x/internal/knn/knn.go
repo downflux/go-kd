@@ -29,9 +29,9 @@ func path[T point.P](n node.N[T], p vnd.V) []node.N[T] {
 	return append(path(n.R(), p), n)
 }
 
-func KNN[T point.P](n node.N[T], p vnd.V, k int) []T {
+func KNN[T point.P](n node.N[T], p vnd.V, k int, f func(p T) bool) []T {
 	q := pq.New[T](k)
-	knn(n, p, q, vnd.V(make([]float64, p.Dimension())))
+	knn(n, p, q, vnd.V(make([]float64, p.Dimension())), f)
 
 	ps := make([]T, q.Len())
 	for i := q.Len() - 1; i >= 0; i-- {
@@ -40,11 +40,11 @@ func KNN[T point.P](n node.N[T], p vnd.V, k int) []T {
 	return ps
 }
 
-func knn[T point.P](n node.N[T], p vnd.V, q *pq.PQ[T], buf vnd.V) {
+func knn[T point.P](n node.N[T], p vnd.V, q *pq.PQ[T], buf vnd.V, f func(p T) bool) {
 	for _, n := range path[T](n, p) {
 		for _, datum := range n.Data() {
 			vnd.SubBuf(p, datum.P(), buf)
-			if d := vnd.SquaredMagnitude(buf); !q.Full() || d < q.Priority() {
+			if d := vnd.SquaredMagnitude(buf); (!q.Full() || d < q.Priority()) && f(datum) {
 				q.Push(datum, d)
 			}
 		}
@@ -53,9 +53,9 @@ func knn[T point.P](n node.N[T], p vnd.V, q *pq.PQ[T], buf vnd.V) {
 			vnd.SubBuf(p, n.Pivot(), buf)
 			if q.Priority() > math.Pow(buf.X(n.Axis()), 2) {
 				if vector.Comparator(n.Axis()).Less(p, n.Pivot()) {
-					knn(n.R(), p, q, buf)
+					knn(n.R(), p, q, buf, f)
 				} else {
-					knn(n.L(), p, q, buf)
+					knn(n.L(), p, q, buf, f)
 				}
 			}
 		}

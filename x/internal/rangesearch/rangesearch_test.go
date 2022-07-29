@@ -83,6 +83,7 @@ func TestRangeSearch(t *testing.T) {
 					Axis: vector.AXIS_X,
 				}),
 				c.q,
+				func(*mock.P) bool { return true },
 			)
 			if diff := cmp.Diff(c.want, got); diff != "" {
 				t.Errorf("RangeSearch() mismatch (-want +got):\n%v", diff)

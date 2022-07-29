@@ -9,7 +9,7 @@ import (
 	"github.com/downflux/go-kd/x/point"
 )
 
-func RangeSearch[T point.P](n node.N[T], q hyperrectangle.R) []T {
+func RangeSearch[T point.P](n node.N[T], q hyperrectangle.R, f func(p T) bool) []T {
 	if n.Nil() {
 		return nil
 	}
@@ -22,17 +22,17 @@ func RangeSearch[T point.P](n node.N[T], q hyperrectangle.R) []T {
 		max[i] = math.Inf(0)
 	}
 
-	return search(n, q, *hyperrectangle.New(vector.V(min), vector.V(max)))
+	return rangesearch(n, q, *hyperrectangle.New(vector.V(min), vector.V(max)), f)
 }
 
-func search[T point.P](n node.N[T], q hyperrectangle.R, bound hyperrectangle.R) []T {
+func rangesearch[T point.P](n node.N[T], q hyperrectangle.R, bound hyperrectangle.R, f func(p T) bool) []T {
 	if _, ok := q.Intersect(bound); n.Nil() || !ok {
 		return nil
 	}
 
 	var data []T
 	for _, p := range n.Data() {
-		if q.In(p.P()) {
+		if q.In(p.P()) && f(p) {
 			data = append(data, p)
 		}
 	}
@@ -50,7 +50,7 @@ func search[T point.P](n node.N[T], q hyperrectangle.R, bound hyperrectangle.R) 
 		max[n.Axis()] = n.Pivot().X(n.Axis())
 
 		bound := *hyperrectangle.New(bound.Min(), max)
-		ch <- search(n.L(), q, bound)
+		ch <- rangesearch(n.L(), q, bound, f)
 		close(ch)
 	}(l)
 	go func(ch chan<- []T) {
@@ -59,7 +59,7 @@ func search[T point.P](n node.N[T], q hyperrectangle.R, bound hyperrectangle.R) 
 		min[n.Axis()] = n.Pivot().X(n.Axis())
 
 		bound := *hyperrectangle.New(min, bound.Max())
-		ch <- search(n.R(), q, bound)
+		ch <- rangesearch(n.R(), q, bound, f)
 		close(ch)
 	}(r)
 

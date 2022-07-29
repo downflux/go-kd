@@ -144,8 +144,9 @@ func TestKNN(t *testing.T) {
 				}),
 				p,
 				knn,
+				putil.TrivialFilter,
 			)
-			want := bruteforce.New[*mock.P](ps).KNN(p, knn)
+			want := bruteforce.New[*mock.P](ps).KNN(p, knn, putil.TrivialFilter)
 			if diff := cmp.Diff(want, got); diff != "" {
 				t.Errorf("KNN mismatch (-want +got):\n%v", diff)
 			}
@@ -188,8 +189,9 @@ func TestRangeSearch(t *testing.T) {
 					N:    c.size,
 				}),
 				q,
+				putil.TrivialFilter,
 			)
-			want := bruteforce.New[*mock.P](ps).RangeSearch(q)
+			want := bruteforce.New[*mock.P](ps).RangeSearch(q, putil.TrivialFilter)
 
 			if diff := cmp.Diff(want, got, putil.Transformer(vector.V(make([]float64, c.k)))); diff != "" {
 				t.Errorf("RangeSearch mismatch (-want +got):\n%v", diff)
