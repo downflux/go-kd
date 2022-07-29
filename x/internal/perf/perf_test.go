@@ -56,7 +56,7 @@ func BenchmarkNew(b *testing.B) {
 func BenchmarkKNN(b *testing.B) {
 	type config struct {
 		name string
-		t    container.I[*mock.P]
+		t    container.C[*mock.P]
 		p    vector.V
 		knn  int
 	}
@@ -109,7 +109,7 @@ func BenchmarkKNN(b *testing.B) {
 func BenchmarkRangeSearch(b *testing.B) {
 	type config struct {
 		name string
-		t    container.I[*mock.P]
+		t    container.C[*mock.P]
 		q    hyperrectangle.R
 	}
 
