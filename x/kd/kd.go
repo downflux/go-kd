@@ -4,7 +4,7 @@ import (
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/knn"
 	"github.com/downflux/go-kd/x/internal/node"
-	"github.com/downflux/go-kd/x/internal/node/tree/detached"
+	"github.com/downflux/go-kd/x/internal/node/tree"
 	"github.com/downflux/go-kd/x/point"
 )
 
@@ -36,7 +36,7 @@ func New[U point.P](o O[U]) *T[U] {
 	t := &T[U]{
 		k: o.K,
 		n: o.N,
-		root: detached.New[U](detached.O[U]{
+		root: tree.New[U](tree.O[U]{
 			Data: data,
 			Axis: 0,
 			K:    o.K,

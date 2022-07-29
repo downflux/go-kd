@@ -19,7 +19,9 @@ type N[T point.P] interface {
 	Data() []T
 
 	Pivot() vector.V
+	K() vector.D
 	Axis() vector.D
+
 	Leaf() bool
 	Nil() bool
 }

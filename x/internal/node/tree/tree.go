@@ -11,57 +11,56 @@ import (
 type O[T point.P] struct {
 	Data []T
 	K    vector.D
-	N    int
+
+	// N is the nominal leaf size of a node.
+	N int
 
 	Axis vector.D
-	Low  int
-	High int
 }
 
-// N is a tree node structure which tracks slices of an input data array that
-// are managed in the node and children. Leaf nodes set the pivot index to -1.
-// Data to the left of current node have smaller values of the given axis.
 type N[T point.P] struct {
 	data []T
 
-	low   int
-	high  int
-	pivot int
-
+	k     vector.D
+	pivot vector.V
 	axis  vector.D
 	left  *N[T]
 	right *N[T]
 }
 
-// New recursively constructs a node object given the input data.
-func New[T point.P](o O[T]) *N[T] {
+func validate[T point.P](o O[T]) error {
 	if o.Axis >= o.K {
-		panic(fmt.Sprintf("given node dimension greater than vector dimension: %v > %v", o.Axis, o.K))
+		return fmt.Errorf("given node dimension greater than vector dimension: %v > %v", o.Axis, o.K)
 	}
 	if o.N < 1 {
-		panic("given leaf node size must be a positive integer")
+		return fmt.Errorf("given leaf node size must be a positive integer")
 	}
-	n := o.High - o.Low
-	if n <= 0 {
+	return nil
+}
+
+// New recursively constructs a node object given the input data.
+func New[T point.P](o O[T]) *N[T] {
+	if err := validate(o); err != nil {
+		panic(fmt.Sprintf("could not construct node: %v", err))
+	}
+
+	if len(o.Data) <= 0 {
 		return nil
 	}
-	if n <= o.N {
+	if len(o.Data) <= o.N {
 		return &N[T]{
-			data:  o.Data,
-			low:   o.Low,
-			high:  o.High,
-			pivot: -1,
-			axis:  o.Axis,
+			data: o.Data,
+			axis: o.Axis,
+			k:    o.K,
 		}
 	}
-	pivot := hoare(o.Data, o.Low, o.Low, o.High, func(a vector.V, b vector.V) bool { return a.X(o.Axis) < b.X(o.Axis) })
+	pivot := hoare(o.Data, 0, 0, len(o.Data), func(a vector.V, b vector.V) bool { return a.X(o.Axis) < b.X(o.Axis) })
 
 	node := &N[T]{
-		data:  o.Data,
-		low:   o.Low,
-		high:  o.High,
-		pivot: pivot,
+		data:  []T{o.Data[pivot]},
+		pivot: o.Data[pivot].P(),
 		axis:  o.Axis,
+		k:     o.K,
 	}
 
 	// Node construction can be concurrent since we guarantee child nodes
@@ -73,25 +72,21 @@ func New[T point.P](o O[T]) *N[T] {
 	l := make(chan *N[T])
 	r := make(chan *N[T])
 
-	go func(ch chan *N[T]) {
+	go func(ch chan<- *N[T]) {
 		ch <- New[T](O[T]{
-			Data: o.Data,
+			Data: o.Data[0:pivot],
 			Axis: (o.Axis + 1) % o.K,
 			K:    o.K,
 			N:    o.N,
-			Low:  o.Low,
-			High: pivot,
 		})
 		close(ch)
 	}(l)
-	go func(ch chan *N[T]) {
+	go func(ch chan<- *N[T]) {
 		ch <- New[T](O[T]{
-			Data: o.Data,
+			Data: o.Data[pivot+1 : len(o.Data)],
 			Axis: (o.Axis + 1) % o.K,
 			K:    o.K,
 			N:    o.N,
-			Low:  pivot + 1,
-			High: o.High,
 		})
 		close(ch)
 	}(r)
@@ -102,25 +97,14 @@ func New[T point.P](o O[T]) *N[T] {
 	return node
 }
 
-func (n *N[T]) Nil() bool      { return n == nil }
-func (n *N[T]) L() node.N[T]   { return n.left }
-func (n *N[T]) R() node.N[T]   { return n.right }
-func (n *N[T]) Leaf() bool     { return n.pivot < 0 }
-func (n *N[T]) Axis() vector.D { return n.axis }
-
-func (n *N[T]) Pivot() vector.V {
-	if n.pivot < 0 {
-		return nil
-	}
-	return n.data[n.pivot].P()
-}
-
-func (n *N[T]) Data() []T {
-	if n.Leaf() {
-		return n.data[n.low:n.high]
-	}
-	return []T{n.data[n.pivot]}
-}
+func (n *N[T]) Nil() bool       { return n == nil }
+func (n *N[T]) L() node.N[T]    { return n.left }
+func (n *N[T]) R() node.N[T]    { return n.right }
+func (n *N[T]) Leaf() bool      { return n.pivot == nil }
+func (n *N[T]) Axis() vector.D  { return n.axis }
+func (n *N[T]) Pivot() vector.V { return n.pivot }
+func (n *N[T]) Data() []T       { return n.data }
+func (n *N[T]) K() vector.D     { return n.k }
 
 // hoare partitions the input data by the pivot.
 //
