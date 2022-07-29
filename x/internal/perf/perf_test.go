@@ -7,13 +7,13 @@ import (
 
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 	"github.com/downflux/go-geometry/nd/vector"
+	"github.com/downflux/go-kd/x/container"
+	"github.com/downflux/go-kd/x/container/bruteforce"
 	"github.com/downflux/go-kd/x/internal/perf/util"
 	"github.com/downflux/go-kd/x/kd"
-	"github.com/downflux/go-kd/x/kd/mock"
-	"github.com/downflux/go-kd/x/kd/mock/bruteforce"
-	"github.com/downflux/go-kd/x/kd/mock/wrapper"
+	"github.com/downflux/go-kd/x/point/mock"
 
-	pmock "github.com/downflux/go-kd/x/point/mock"
+	ckd "github.com/downflux/go-kd/x/container/kd"
 )
 
 func BenchmarkNew(b *testing.B) {
@@ -43,7 +43,7 @@ func BenchmarkNew(b *testing.B) {
 		ps := util.Generate(c.n, c.k)
 		b.Run(c.name, func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				kd.New[*pmock.P](kd.O[*pmock.P]{
+				kd.New[*mock.P](kd.O[*mock.P]{
 					Data: ps,
 					K:    c.k,
 					N:    c.size,
@@ -56,7 +56,7 @@ func BenchmarkNew(b *testing.B) {
 func BenchmarkKNN(b *testing.B) {
 	type config struct {
 		name string
-		t    mock.I[*pmock.P]
+		t    container.I[*mock.P]
 		p    vector.V
 		knn  int
 	}
@@ -70,7 +70,7 @@ func BenchmarkKNN(b *testing.B) {
 			// KNN factor does not matter.
 			configs = append(configs, config{
 				name: fmt.Sprintf("BruteForce/K=%v/N=%v", k, n),
-				t:    bruteforce.New[*pmock.P](ps),
+				t:    bruteforce.New[*mock.P](ps),
 				p:    vector.V(make([]float64, k)),
 				knn:  n,
 			})
@@ -81,8 +81,8 @@ func BenchmarkKNN(b *testing.B) {
 				for _, size := range util.SizeRange {
 					configs = append(configs, config{
 						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/KNN=%v", k, n, size, f),
-						t: (*wrapper.T[*pmock.P])(unsafe.Pointer(
-							kd.New[*pmock.P](kd.O[*pmock.P]{
+						t: (*ckd.T[*mock.P])(unsafe.Pointer(
+							kd.New[*mock.P](kd.O[*mock.P]{
 								Data: ps,
 								K:    k,
 								N:    size,
@@ -109,7 +109,7 @@ func BenchmarkKNN(b *testing.B) {
 func BenchmarkRangeSearch(b *testing.B) {
 	type config struct {
 		name string
-		t    mock.I[*pmock.P]
+		t    container.I[*mock.P]
 		q    hyperrectangle.R
 	}
 
@@ -122,7 +122,7 @@ func BenchmarkRangeSearch(b *testing.B) {
 			// query range factor does not matter.
 			configs = append(configs, config{
 				name: fmt.Sprintf("BruteForce/K=%v/N=%v", k, n),
-				t:    bruteforce.New[*pmock.P](ps),
+				t:    bruteforce.New[*mock.P](ps),
 				q:    util.RH(k, 1),
 			})
 
@@ -132,8 +132,8 @@ func BenchmarkRangeSearch(b *testing.B) {
 				for _, size := range util.SizeRange {
 					configs = append(configs, config{
 						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/Coverage=%v", k, n, size, f),
-						t: (*wrapper.T[*pmock.P])(unsafe.Pointer(
-							kd.New[*pmock.P](kd.O[*pmock.P]{
+						t: (*ckd.T[*mock.P])(unsafe.Pointer(
+							kd.New[*mock.P](kd.O[*mock.P]{
 								Data: ps,
 								K:    k,
 								N:    size,

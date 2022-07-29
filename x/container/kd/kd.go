@@ -1,4 +1,4 @@
-package wrapper
+package kd
 
 import (
 	"github.com/downflux/go-geometry/nd/hyperrectangle"

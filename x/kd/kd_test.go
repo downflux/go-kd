@@ -6,8 +6,8 @@ import (
 
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 	"github.com/downflux/go-geometry/nd/vector"
+	"github.com/downflux/go-kd/x/container/bruteforce"
 	"github.com/downflux/go-kd/x/internal/node/util"
-	"github.com/downflux/go-kd/x/kd/mock/bruteforce"
 	"github.com/downflux/go-kd/x/point/mock"
 	"github.com/google/go-cmp/cmp"
 
