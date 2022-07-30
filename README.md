@@ -27,10 +27,10 @@ import (
 	ckd "github.com/downflux/go-kd/kd"
 )
 
-var _ point.P = &P{}
-
 // P implements the point.P interface, which needs to provide a coordinate
 // vector function P().
+var _ point.P = &P{}
+
 type P struct {
 	p   vector.V
 	tag string
@@ -41,15 +41,15 @@ func (p *P) Equal(q *P) bool { return vector.Within(p.P(), q.P()) && p.tag == q.
 
 func main() {
 	data := []*P{
-		&P{p: vector.V([]float64{1, 2}), tag: "A"},
-		&P{p: vector.V([]float64{2, 100}), tag: "B"},
+		&P{p: vector.V{1, 2}, tag: "A"},
+		&P{p: vector.V{2, 100}, tag: "B"},
 	}
 
-	// Data is copy-constructed, and may be read from outside the k-D tree.
+	// Data is copy-constructed and may be read from outside the k-D tree.
 	//
 	// N.B.: We are casting the k-D tree into a container type, as this
 	// allows for the user to easily switch between implementations. The
-	// user may directly consume the kd package API directly.
+	// user may directly consume the kd package API instead.
 	var t container.C[*P] = (*kd.KD[*P])(
 		ckd.New[*P](ckd.O[*P]{
 			Data: data,
@@ -59,7 +59,10 @@ func main() {
 	)
 
 	fmt.Println("KNN search")
-	for _, p := range t.KNN(vector.V([]float64{0, 0}), 1, func(p *P) bool { return true }) {
+	for _, p := range t.KNN(
+		/* v = */ vector.V{0, 0},
+		/* k = */ 2,
+		func(p *P) bool { return true }) {
 		fmt.Println(p)
 	}
 
@@ -73,8 +76,8 @@ func main() {
 	fmt.Println("range search")
 	for _, p := range t.RangeSearch(
 		*hyperrectangle.New(
-			vector.V([]float64{0, 0}),
-			vector.V([]float64{100, 100}),
+			/* min = */ vector.V{0, 0},
+			/* max = */ vector.V{100, 100},
 		),
 		func(p *P) bool { return true },
 	) {
