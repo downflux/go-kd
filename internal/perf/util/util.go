@@ -14,9 +14,9 @@ import (
 )
 
 var (
-	BenchmarkKRange    = []vector.D{2, 32, 256}
+	BenchmarkKRange    = []vector.D{2, 16, 128}
 	BenchmarkNRange    = []int{1e3, 1e4, 1e5, 1e6}
-	BenchmarkSizeRange = []int{1, 16, 128, 512}
+	BenchmarkSizeRange = []int{1, 32, 1024}
 	BenchmarkFRange    = []float64{0.05, 0.1, 0.25}
 
 	KRange    = []vector.D{2}
