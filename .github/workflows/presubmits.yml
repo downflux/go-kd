@@ -1,7 +1,8 @@
 name: CI Presubmits
 
 on:
-  pull_request: [ main ]
+  pull_request:
+    branches: [ main ]
   push:
     branches: [ "*" ]
 
