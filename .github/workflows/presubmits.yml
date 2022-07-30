@@ -1,6 +1,7 @@
 name: CI Presubmits
 
 on:
+  pull_request: [ main ]
   push:
     branches: [ "*" ]
 
@@ -18,4 +19,4 @@ jobs:
         go-version: 1.18
 
     - name: Test github.com/downflux/go-kd
-      run: go test github.com/downflux/go-kd/... -timeout=15m
+      run: go test github.com/downflux/go-kd/...
