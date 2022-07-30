@@ -217,7 +217,7 @@ func TestInsert(t *testing.T) {
 				kd.Insert(p)
 			}
 
-			if diff := cmp.Diff(kd, c.want, cmp.AllowUnexported(N[mock.P]{})); diff != "" {
+			if diff := cmp.Diff(c.want, kd, cmp.AllowUnexported(N[mock.P]{})); diff != "" {
 				t.Errorf("Insert() mismatch(-want +got):\n%v", diff)
 			}
 		})
@@ -233,7 +233,183 @@ func TestRemove(t *testing.T) {
 		want *N[mock.P]
 	}
 
-	configs := []config{}
+	configs := []config{
+		{
+			name: "Nil",
+			opts: O[mock.P]{
+				Data: nil,
+				K:    1,
+				N:    1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.U(1)},
+			},
+			want: &N[mock.P]{
+				k: 1,
+			},
+		},
+		{
+			name: "Simple",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					mock.P{X: mock.U(100)},
+				},
+				K: 1,
+				N: 1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.U(100)},
+			},
+			want: &N[mock.P]{
+				k:    1,
+				axis: 0,
+				data: []mock.P{},
+			},
+		},
+		{
+			name: "L",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					mock.P{X: mock.U(100)},
+					mock.P{X: mock.U(-50)},
+				},
+				K: 1,
+				N: 1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.U(-50)},
+			},
+			want: &N[mock.P]{
+				k:     1,
+				pivot: mock.U(100),
+				data: []mock.P{
+					mock.P{X: mock.U(100)},
+				},
+				axis: 0,
+				left: &N[mock.P]{
+					k:    1,
+					axis: 0,
+					data: []mock.P{},
+				},
+			},
+		},
+		{
+			name: "L/LargeK",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					mock.P{X: mock.V([]float64{100, 1})},
+					mock.P{X: mock.V([]float64{-50, 100})},
+				},
+				K: 2,
+				N: 1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.V([]float64{-50, 100})},
+			},
+			want: &N[mock.P]{
+				k:     2,
+				pivot: mock.V([]float64{100, 1}),
+				data: []mock.P{
+					mock.P{X: mock.V([]float64{100, 1})},
+				},
+				axis: 0,
+				left: &N[mock.P]{
+					k:    2,
+					axis: 1,
+					data: []mock.P{},
+				},
+			},
+		},
+		{
+			name: "R",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					mock.P{X: mock.U(-50)},
+					mock.P{X: mock.U(100)},
+				},
+				K: 1,
+				N: 1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.U(100)},
+			},
+			want: &N[mock.P]{
+				k:     1,
+				pivot: mock.U(-50),
+				data: []mock.P{
+					mock.P{X: mock.U(-50)},
+				},
+				axis: 0,
+				right: &N[mock.P]{
+					k:    1,
+					axis: 0,
+					data: []mock.P{},
+				},
+			},
+		},
+		{
+			name: "R/LargeK",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					mock.P{X: mock.V([]float64{-50, 100})},
+					mock.P{X: mock.V([]float64{-50, 101})},
+					mock.P{X: mock.V([]float64{100, 500})},
+				},
+				K: 2,
+				N: 1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.V([]float64{-50, 101})},
+				mock.P{X: mock.V([]float64{100, 500})},
+			},
+			want: &N[mock.P]{
+				k:     2,
+				pivot: mock.V([]float64{-50, 100}),
+				data: []mock.P{
+					mock.P{X: mock.V([]float64{-50, 100})},
+				},
+				axis: 0,
+				right: &N[mock.P]{
+					k:     2,
+					axis:  1,
+					pivot: mock.V([]float64{-50, 101}),
+					data:  []mock.P{},
+					right: &N[mock.P]{
+						k:    2,
+						axis: 0,
+						data: []mock.P{},
+					},
+				},
+			},
+		},
+		{
+			name: "Pivot",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					mock.P{X: mock.U(-50)},
+					mock.P{X: mock.U(100)},
+				},
+				K: 1,
+				N: 1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.U(-50)},
+			},
+			want: &N[mock.P]{
+				k:     1,
+				pivot: mock.U(-50),
+				data:  []mock.P{},
+				axis:  0,
+				right: &N[mock.P]{
+					k:    1,
+					axis: 0,
+					data: []mock.P{
+						mock.P{X: mock.U(100)},
+					},
+				},
+			},
+		},
+	}
 
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
@@ -242,7 +418,7 @@ func TestRemove(t *testing.T) {
 				kd.Remove(p.P(), func(q mock.P) bool { return mock.Equal(p, q) })
 			}
 
-			if diff := cmp.Diff(kd, c.want, cmp.AllowUnexported(N[mock.P]{})); diff != "" {
+			if diff := cmp.Diff(c.want, kd, cmp.AllowUnexported(N[mock.P]{})); diff != "" {
 				t.Errorf("Remove() mismatch(-want +got):\n%v", diff)
 			}
 		})
