@@ -1,3 +1,17 @@
+// Package kd implements a k-D tree with arbitrary data packing and duplicate
+// data coordinate support.
+//
+// k-D trees are generally a cacheing layer representation of the local state --
+// we do not expect to be making frequent mutations to this tree once
+// constructed.
+//
+// Read operations on this k-D tree may be done in parallel. Mutations on the
+// k-D tree must be done serially.
+//
+// N.B.: Mutating the data point positions must be accompanied by mutating the
+// k-D tree. For large numbers of points, and for a large number of queries, the
+// time taken to build the tree will be offset by the speedup of subsequent
+// reads.
 package kd
 
 import (
