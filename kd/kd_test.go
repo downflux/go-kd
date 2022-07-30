@@ -112,20 +112,24 @@ func TestKNN(t *testing.T) {
 		name string
 		k    vector.D
 		n    int
-
 		size int
+
+		knn int
 	}
 
 	var configs []config
 	for _, k := range putil.KRange {
 		for _, n := range putil.NRange {
 			for _, size := range putil.SizeRange {
-				configs = append(configs, config{
-					name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v", k, n, size),
-					k:    k,
-					n:    n,
-					size: size,
-				})
+				for _, f := range putil.FRange {
+					configs = append(configs, config{
+						name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v/KNN=%v", k, n, size, f),
+						k:    k,
+						n:    n,
+						knn:  int(float64(n) * f),
+						size: size,
+					})
+				}
 			}
 		}
 	}
@@ -133,7 +137,6 @@ func TestKNN(t *testing.T) {
 	for _, c := range configs {
 		ps := putil.Generate(c.n, c.k)
 		t.Run(c.name, func(t *testing.T) {
-			knn := int(float64(c.n) * 0.1)
 			p := vector.V(make([]float64, c.k))
 
 			got := KNN(
@@ -143,10 +146,10 @@ func TestKNN(t *testing.T) {
 					N:    c.size,
 				}),
 				p,
-				knn,
+				c.knn,
 				putil.TrivialFilter,
 			)
-			want := bruteforce.New[*mock.P](ps).KNN(p, knn, putil.TrivialFilter)
+			want := bruteforce.New[*mock.P](ps).KNN(p, c.knn, putil.TrivialFilter)
 			if diff := cmp.Diff(want, got); diff != "" {
 				t.Errorf("KNN mismatch (-want +got):\n%v", diff)
 			}
@@ -167,12 +170,15 @@ func TestRangeSearch(t *testing.T) {
 	for _, k := range putil.KRange {
 		for _, n := range putil.NRange {
 			for _, size := range putil.SizeRange {
-				configs = append(configs, config{
-					name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v", k, n, size),
-					k:    k,
-					n:    n,
-					size: size,
-				})
+				for _, f := range putil.FRange {
+					configs = append(configs, config{
+						name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v/Coverage=%v", k, n, size, f),
+						k:    k,
+						n:    n,
+						size: size,
+						q:    putil.RH(k, f),
+					})
+				}
 			}
 		}
 	}
@@ -180,18 +186,16 @@ func TestRangeSearch(t *testing.T) {
 	for _, c := range configs {
 		ps := putil.Generate(c.n, c.k)
 		t.Run(c.name, func(t *testing.T) {
-			q := putil.RH(c.k, 0.05)
-
 			got := RangeSearch(
 				New[*mock.P](O[*mock.P]{
 					Data: ps,
 					K:    c.k,
 					N:    c.size,
 				}),
-				q,
+				c.q,
 				putil.TrivialFilter,
 			)
-			want := bruteforce.New[*mock.P](ps).RangeSearch(q, putil.TrivialFilter)
+			want := bruteforce.New[*mock.P](ps).RangeSearch(c.q, putil.TrivialFilter)
 
 			if diff := cmp.Diff(want, got, putil.Transformer(vector.V(make([]float64, c.k)))); diff != "" {
 				t.Errorf("RangeSearch mismatch (-want +got):\n%v", diff)

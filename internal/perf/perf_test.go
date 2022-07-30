@@ -26,9 +26,9 @@ func BenchmarkNew(b *testing.B) {
 	}
 
 	var configs []config
-	for _, k := range util.KRange {
-		for _, n := range util.NRange {
-			for _, size := range util.SizeRange {
+	for _, k := range util.BenchmarkKRange {
+		for _, n := range util.BenchmarkNRange {
+			for _, size := range util.BenchmarkSizeRange {
 				configs = append(configs, config{
 					name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v", k, n, size),
 					k:    k,
@@ -62,8 +62,8 @@ func BenchmarkKNN(b *testing.B) {
 	}
 
 	var configs []config
-	for _, k := range util.KRange {
-		for _, n := range util.NRange {
+	for _, k := range util.BenchmarkKRange {
+		for _, n := range util.BenchmarkNRange {
 			ps := util.Generate(n, k)
 
 			// Brute force approach sorts all data, meaning that the
@@ -75,10 +75,10 @@ func BenchmarkKNN(b *testing.B) {
 				knn:  n,
 			})
 
-			for _, f := range []float64{0.05, 0.1, 0.25} {
+			for _, f := range util.BenchmarkFRange {
 				knn := int(float64(n) * f)
 
-				for _, size := range util.SizeRange {
+				for _, size := range util.BenchmarkSizeRange {
 					configs = append(configs, config{
 						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/KNN=%v", k, n, size, f),
 						t: (*ckd.KD[*mock.P])(unsafe.Pointer(
@@ -114,8 +114,8 @@ func BenchmarkRangeSearch(b *testing.B) {
 	}
 
 	var configs []config
-	for _, k := range util.KRange {
-		for _, n := range util.NRange {
+	for _, k := range util.BenchmarkKRange {
+		for _, n := range util.BenchmarkNRange {
 			ps := util.Generate(n, k)
 
 			// Brute force approach sorts all data, meaning that the
@@ -126,10 +126,10 @@ func BenchmarkRangeSearch(b *testing.B) {
 				q:    util.RH(k, 1),
 			})
 
-			for _, f := range []float64{0.05, 0.1, 0.25} {
+			for _, f := range util.BenchmarkFRange {
 				q := util.RH(k, f)
 
-				for _, size := range util.SizeRange {
+				for _, size := range util.BenchmarkSizeRange {
 					configs = append(configs, config{
 						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/Coverage=%v", k, n, size, f),
 						t: (*ckd.KD[*mock.P])(unsafe.Pointer(

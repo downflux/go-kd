@@ -14,9 +14,15 @@ import (
 )
 
 var (
-	KRange    = []vector.D{2, 32, 256}
-	NRange    = []int{1e3, 1e4, 1e5, 1e6}
-	SizeRange = []int{1, 16, 128, 512}
+	BenchmarkKRange    = []vector.D{2, 32, 256}
+	BenchmarkNRange    = []int{1e3, 1e4, 1e5, 1e6}
+	BenchmarkSizeRange = []int{1, 16, 128, 512}
+	BenchmarkFRange    = []float64{0.05, 0.1, 0.25}
+
+	KRange    = []vector.D{2}
+	NRange    = []int{1e3}
+	SizeRange = []int{1, 16}
+	FRange    = []float64{0.05}
 )
 
 func TrivialFilter(p *mock.P) bool { return true }
