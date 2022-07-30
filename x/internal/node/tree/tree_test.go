@@ -58,7 +58,7 @@ func TestRemove(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(kd, c.want, cmp.AllowUnexported(N[mock.P]{})); diff != "" {
-				t.Errorf("Insert() mismatch(-want +got):\n%v", diff)
+				t.Errorf("Remove() mismatch(-want +got):\n%v", diff)
 			}
 		})
 	}
