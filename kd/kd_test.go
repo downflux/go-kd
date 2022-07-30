@@ -2,216 +2,199 @@ package kd
 
 import (
 	"fmt"
-	"math"
 	"testing"
 
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
-	"github.com/downflux/go-geometry/nd/hypersphere"
 	"github.com/downflux/go-geometry/nd/vector"
-	"github.com/downflux/go-kd/internal/testdata/generator"
-	"github.com/downflux/go-kd/point"
+	"github.com/downflux/go-kd/container/bruteforce"
+	"github.com/downflux/go-kd/internal/node/util"
+	"github.com/downflux/go-kd/point/mock"
+	"github.com/google/go-cmp/cmp"
 
-	mock "github.com/downflux/go-kd/internal/point/testdata/mock/simple"
+	putil "github.com/downflux/go-kd/internal/perf/util"
 )
 
-const (
-	// f defines the rough percentage of points benchmark tests should seek
-	// for. We deem this an arbitrary but reasonable enough heuristic for
-	// normal data access patterns.
-	f = 0.05
-)
-
-var (
-	// kRange is used for several benchmark tests to specify the dimension
-	// of the ambient space. Vectors will have the specified number of
-	// elements.
-	//
-	// N.B.: The size of a tree is dominated by the total amount of data
-	// stored at each point, and for large K, is dominated by the size of
-	// the vector. A float64 is 8B; a K=100 vector is therefore 800B, and
-	// benchmarking with ~1M elements is around 800MB. Keep this lower limit
-	// in mind when trying to test for more stressful conditions.
-	kRange = []int{2, 10}
-
-	// nRange is used for several benchmark tests to specify the number of
-	// elements that should be added to the K-D tree.
-	nRange = []int{1e4, 1e5, 2e5, 3e5, 1e6}
-)
-
-func TestConsistentK(t *testing.T) {
-	if _, err := New([]point.P{
-		*mock.New(*vector.New(1), "A"),
-		*mock.New(*vector.New(1, 2), "A"),
-	}); err == nil {
-		t.Errorf("New() = _, %v, want a non-nil error", err)
-	}
-
-	kd, _ := New([]point.P{
-		*mock.New(*vector.New(1, 2, 3), "A"),
-		*mock.New(*vector.New(1, 2, 3), "B"),
-	})
-
-	if _, err := KNN(kd, *vector.New(1), 2); err == nil {
-		t.Errorf("KNN() = _, %v, want a non-nil error", err)
-	}
-
-	if err := kd.Insert(*mock.New(*vector.New(1), "A")); err == nil {
-		t.Errorf("Insert() = _, %v, want a non-nil error", err)
-	}
-
-	if _, err := kd.Remove(*vector.New(1), func(point.P) bool { return true }); err == nil {
-		t.Errorf("Remove() = _, %v, want a non-nil error", err)
-	}
-
-	if _, err := RadialFilter(kd, *hypersphere.New(*vector.New(1), 5), func(p point.P) bool { return true }); err == nil {
-		t.Errorf("RadialFilter() = _, %v, want a non-nil error", err)
-	}
-}
-
-// BenchmarkNew measures the construction time of the tree.
-func BenchmarkNew(b *testing.B) {
+func TestNew(t *testing.T) {
 	type config struct {
 		name string
+		k    vector.D
+		n    int
 
-		// k is the number of dimensions of the input data, i.e. the "K"
-		// in K-D tree.
-		k int
-
-		// n is the number of points to generate.
-		n int
+		size int
 	}
 
-	var testConfigs []config
-
-	for _, k := range kRange {
-		for _, n := range nRange {
-			testConfigs = append(testConfigs, config{
-				name: fmt.Sprintf("K=%v/N=%v", k, n),
-				k:    k,
-				n:    n,
-			})
+	var configs []config
+	for _, k := range putil.KRange {
+		for _, n := range putil.NRange {
+			for _, size := range putil.SizeRange {
+				configs = append(configs, config{
+					name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v", k, n, size),
+					k:    k,
+					n:    n,
+					size: size,
+				})
+			}
 		}
 	}
 
-	for _, c := range testConfigs {
-		ps := generator.P(c.n, vector.D(c.k))
-		cs := generator.C(c.n, vector.D(c.k))
-
-		b.Run(c.name, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				New(ps)
-			}
-		})
-
-		// Check tree construction times with more complex point.P
-		// implementations.
-		b.Run(fmt.Sprintf("%v/MultiField", c.name), func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				New(cs)
+	for _, c := range configs {
+		ps := putil.Generate(c.n, c.k)
+		t.Run(c.name, func(t *testing.T) {
+			tree := New[*mock.P](O[*mock.P]{
+				Data: ps,
+				K:    c.k,
+				N:    c.size,
+			})
+			if !util.Validate(tree.root) {
+				t.Errorf("validate() = %v, want = %v", false, true)
 			}
 		})
 	}
 }
 
-// BenchmarkKNN measures the average KNN search time.
-func BenchmarkKNN(b *testing.B) {
+func TestData(t *testing.T) {
 	type config struct {
 		name string
-
-		// k is the number of dimensions of the input data, i.e. the "K"
-		// in K-D tree.
-		k int
-
-		// knn is the number of points to look for in the KNN search.
-		knn int
-
-		kd *T
+		data []*mock.P
+		k    vector.D
+		want []*mock.P
 	}
 
-	var testConfigs []config
+	configs := []config{
+		{
+			name: "Nil",
+			data: nil,
+			want: nil,
+			k:    1,
+		},
+		{
+			name: "Simple",
+			data: []*mock.P{
+				&mock.P{X: mock.U(1)},
+			},
+			want: []*mock.P{
+				&mock.P{X: mock.U(1)},
+			},
+			k: 1,
+		},
+		{
+			name: "LR",
+			data: []*mock.P{
+				&mock.P{X: mock.U(1)},
+				&mock.P{X: mock.U(0)},
+				&mock.P{X: mock.U(2)},
+			},
+			want: []*mock.P{
+				&mock.P{X: mock.U(1)},
+				&mock.P{X: mock.U(0)},
+				&mock.P{X: mock.U(2)},
+			},
+			k: 1,
+		},
+	}
 
-	for _, k := range kRange {
-		for _, n := range nRange {
-			knn := int(float64(n) * f)
-			kd, _ := New(generator.P(n, vector.D(k)))
-			testConfigs = append(testConfigs, config{
-				name: fmt.Sprintf("K=%v/N=%v", k, n),
-				kd:   kd,
-				k:    k,
-				knn:  knn,
+	for _, c := range configs {
+		t.Run(c.name, func(t *testing.T) {
+			kd := New(O[*mock.P]{
+				Data: c.data,
+				K:    c.k,
+				N:    1,
 			})
+			got := Data(kd)
+			if diff := cmp.Diff(c.want, got); diff != "" {
+				t.Errorf("KNN mismatch (-want +got):\n%v", diff)
+			}
+		})
+	}
+}
+func TestKNN(t *testing.T) {
+	type config struct {
+		name string
+		k    vector.D
+		n    int
+
+		size int
+	}
+
+	var configs []config
+	for _, k := range putil.KRange {
+		for _, n := range putil.NRange {
+			for _, size := range putil.SizeRange {
+				configs = append(configs, config{
+					name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v", k, n, size),
+					k:    k,
+					n:    n,
+					size: size,
+				})
+			}
 		}
 	}
 
-	for _, c := range testConfigs {
-		b.Run(c.name, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				if _, err := KNN(c.kd, generator.V(vector.D(c.k)), c.knn); err != nil {
-					b.Errorf("KNN() = _, %v, want = _, %v", err, nil)
-				}
+	for _, c := range configs {
+		ps := putil.Generate(c.n, c.k)
+		t.Run(c.name, func(t *testing.T) {
+			knn := int(float64(c.n) * 0.1)
+			p := vector.V(make([]float64, c.k))
+
+			got := KNN(
+				New[*mock.P](O[*mock.P]{
+					Data: ps,
+					K:    c.k,
+					N:    c.size,
+				}),
+				p,
+				knn,
+				putil.TrivialFilter,
+			)
+			want := bruteforce.New[*mock.P](ps).KNN(p, knn, putil.TrivialFilter)
+			if diff := cmp.Diff(want, got); diff != "" {
+				t.Errorf("KNN mismatch (-want +got):\n%v", diff)
 			}
 		})
 	}
 }
 
-// BenchmarkFilter measures the average radial search time.
-func BenchmarkFilter(b *testing.B) {
+func TestRangeSearch(t *testing.T) {
 	type config struct {
 		name string
-
-		// k is the number of dimensions of the input data, i.e. the "K"
-		// in K-D tree.
-		k int
-
-		// n is the number of points to generate.
-		n int
-
-		// l is the length of the hyperrectangle.
-		l float64
-
-		kd *T
+		k    vector.D
+		n    int
+		size int
+		q    hyperrectangle.R
 	}
 
-	var testConfigs []config
-
-	for _, k := range kRange {
-		for _, n := range nRange {
-			// We want to search approximately f = 0.05 of the
-			// total space, so we will define a ball with this
-			// constraint in mind.
-			volume := math.Pow(generator.Interval, float64(k)) * f
-			l := math.Pow(volume, 1/float64(k))
-
-			kd, _ := New(generator.P(n, vector.D(k)))
-			testConfigs = append(testConfigs, config{
-				name: fmt.Sprintf("K=%v/N=%v", k, n),
-				k:    k,
-				kd:   kd,
-				l:    l,
-			})
+	var configs []config
+	for _, k := range putil.KRange {
+		for _, n := range putil.NRange {
+			for _, size := range putil.SizeRange {
+				configs = append(configs, config{
+					name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v", k, n, size),
+					k:    k,
+					n:    n,
+					size: size,
+				})
+			}
 		}
 	}
 
-	for _, c := range testConfigs {
-		p := generator.V(vector.D(c.k))
+	for _, c := range configs {
+		ps := putil.Generate(c.n, c.k)
+		t.Run(c.name, func(t *testing.T) {
+			q := putil.RH(c.k, 0.05)
 
-		min := make([]float64, c.k)
-		max := make([]float64, c.k)
+			got := RangeSearch(
+				New[*mock.P](O[*mock.P]{
+					Data: ps,
+					K:    c.k,
+					N:    c.size,
+				}),
+				q,
+				putil.TrivialFilter,
+			)
+			want := bruteforce.New[*mock.P](ps).RangeSearch(q, putil.TrivialFilter)
 
-		for i := vector.D(0); i < vector.D(c.k); i++ {
-			min[i] = p.X(i) - (c.l / 2)
-			max[i] = p.X(i) + (c.l / 2)
-		}
-
-		b.Run(c.name, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				if _, err := Filter(
-					c.kd,
-					*hyperrectangle.New(min, max),
-					func(point.P) bool { return true },
-				); err != nil {
-					b.Errorf("Filter() = _, %v, want = _, %v", err, nil)
-				}
+			if diff := cmp.Diff(want, got, putil.Transformer(vector.V(make([]float64, c.k)))); diff != "" {
+				t.Errorf("RangeSearch mismatch (-want +got):\n%v", diff)
 			}
 		})
 	}

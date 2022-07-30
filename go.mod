@@ -1,6 +1,6 @@
 module github.com/downflux/go-kd
 
-go 1.17
+go 1.18
 
 require (
 	github.com/downflux/go-geometry v0.7.0

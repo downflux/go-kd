@@ -1,4 +1,3 @@
-// Package point defines the data interface for the K-D tree.
 package point
 
 import (
@@ -6,7 +5,5 @@ import (
 )
 
 type P interface {
-	// P is the coordinate in the K-dimensional ambient space at which the
-	// data is embedded.
 	P() vector.V
 }
