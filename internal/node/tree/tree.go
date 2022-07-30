@@ -126,7 +126,7 @@ func (n *N[T]) Insert(p T) {
 	n.R().Insert(p)
 }
 
-func (n *N[T]) Remove(v vnd.V, f func(p T) bool) (bool, T) {
+func (n *N[T]) Remove(v vnd.V, f func(p T) bool) (T, bool) {
 	var blank T
 	if n.Leaf() || !n.Leaf() && vnd.Within(n.Pivot(), v) {
 		for i, p := range n.Data() {
@@ -134,10 +134,10 @@ func (n *N[T]) Remove(v vnd.V, f func(p T) bool) (bool, T) {
 				n.data[i], n.data[len(n.data)-1] = n.data[len(n.data)-1], blank
 				n.data = n.data[:len(n.data)-1]
 
-				return true, p
+				return p, true
 			}
 		}
-		return false, blank
+		return blank, false
 	}
 
 	if vector.Comparator(n.Axis()).Less(v, n.Pivot()) {

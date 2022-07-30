@@ -19,7 +19,7 @@ type N[T point.P] interface {
 	Data() []T
 
 	Insert(p T)
-	Remove(v vector.V, f func(p T) bool) (bool, T)
+	Remove(v vector.V, f func(p T) bool) (T, bool)
 
 	Pivot() vector.V
 	K() vector.D

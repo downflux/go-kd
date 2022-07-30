@@ -50,16 +50,16 @@ func (m *L[T]) RangeSearch(q hyperrectangle.R, f filter.F[T]) []T {
 }
 
 func (m *L[T]) Insert(p T) { *m = append(*m, p) }
-func (m *L[T]) Remove(p vector.V, f filter.F[T]) (bool, T) {
+func (m *L[T]) Remove(p vector.V, f filter.F[T]) (T, bool) {
 	var blank T
 	for i, q := range *m {
 		if vector.Within(p, q.P()) && f(q) {
 			(*m)[i], (*m)[len(*m)-1] = (*m)[len(*m)-1], blank
 			*m = (*m)[:len(*m)-1]
-			return true, q
+			return q, true
 		}
 	}
-	return false, blank
+	return blank, false
 }
 
 func (m *L[T]) Data() []T { return *m }

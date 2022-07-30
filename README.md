@@ -7,7 +7,7 @@ See https://en.wikipedia.org/wiki/K-d_tree for more information.
 ## Testing
 
 ```bash
-go test -v github.com/downflux/go-kd/... -bench . -benchmem
+go test github.com/downflux/go-kd/... -bench . -benchmem -timeout=60m
 ```
 
 ## Example
@@ -18,11 +18,16 @@ package main
 import (
 	"fmt"
 
-	"github.com/downflux/go-geometry/nd/hypersphere"
+	"github.com/downflux/go-geometry/nd/hyperrectangle"
 	"github.com/downflux/go-geometry/nd/vector"
-	"github.com/downflux/go-kd/kd"
+	"github.com/downflux/go-kd/container"
+	"github.com/downflux/go-kd/container/kd"
 	"github.com/downflux/go-kd/point"
+
+	ckd "github.com/downflux/go-kd/kd"
 )
+
+var _ point.P = &P{}
 
 // P implements the point.P interface, which needs to provide a coordinate
 // vector function P().
@@ -31,39 +36,44 @@ type P struct {
 	tag string
 }
 
-func (p P) P() vector.V { return p.p }
+func (p *P) P() vector.V     { return p.p }
+func (p *P) Equal(q *P) bool { return vector.Within(p.P(), q.P()) && p.tag == q.tag }
 
 func main() {
-	// N.B.: KD operations will return non-nil errors if the input vectors
-	// are not a consistent length.
-	v := *vector.New(1, 2, 3)
-	origin := *vector.New(0, 0, 0)
+	data := []*P{
+		&P{p: vector.V([]float64{1, 2}), tag: "A"},
+		&P{p: vector.V([]float64{2, 100}), tag: "B"},
+	}
 
-	t, _ := kd.New([]point.P{
-		P{p: v, tag: "A"},
-		P{p: v, tag: "B"},
-	})
+	// Data is copy-constructed, and may be read from outside the k-D tree.
+	var t container.C[*P] = (*kd.KD[*P])(
+		ckd.New[*P](ckd.O[*P]{
+			Data: data,
+			K:    2,
+			N:    1,
+		}),
+	)
 
 	fmt.Println("KNN search")
-	ns, _ := kd.KNN(t, origin, 2)
-	for _, p := range ns {
+	for _, p := range t.KNN(vector.V([]float64{0, 0}), 1, func(p *P) bool { return true }) {
 		fmt.Println(p)
 	}
 
 	// Remove deletes the first data point at the given input coordinate and
 	// matches the input check function.
-	t.Remove(v, func(p point.P) bool {
-		return p.(P).tag == "B"
-	})
+	p, ok := t.Remove(data[0].P(), data[0].Equal)
+	fmt.Printf("removed %v (found = %v)\n", p, ok)
 
-	// RadialFilter returns all points within the circle range and match the
+	// RangeSearch returns all points within the k-D bounds and matches the
 	// input filter function.
-	fmt.Println("radial search")
-	ns, _ = kd.RadialFilter(
-		t,
-		*hypersphere.New(origin, 5),
-		func(p point.P) bool { return true })
-	for _, p := range ns {
+	fmt.Println("range search")
+	for _, p := range t.RangeSearch(
+		*hyperrectangle.New(
+			vector.V([]float64{0, 0}),
+			vector.V([]float64{100, 100}),
+		),
+		func(p *P) bool { return true },
+	) {
 		fmt.Println(p)
 	}
 }
