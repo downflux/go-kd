@@ -46,6 +46,10 @@ func main() {
 	}
 
 	// Data is copy-constructed, and may be read from outside the k-D tree.
+	//
+	// N.B.: We are casting the k-D tree into a container type, as this
+	// allows for the user to easily switch between implementations. The
+	// user may directly consume the kd package API directly.
 	var t container.C[*P] = (*kd.KD[*P])(
 		ckd.New[*P](ckd.O[*P]{
 			Data: data,
