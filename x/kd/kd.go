@@ -10,21 +10,24 @@ import (
 	"github.com/downflux/go-kd/x/point"
 )
 
-type O[U point.P] struct {
-	Data []U
+type O[T point.P] struct {
+	Data []T
 	K    vector.D
-	N    int
+
+	// N is the leaf size of the k-D tree. Leaf nodes are checked via
+	// bruteforce methods.
+	N int
 }
 
-type T[U point.P] struct {
+type KD[T point.P] struct {
 	k vector.D
 	n int
 
-	root node.N[U]
+	root node.N[T]
 }
 
-func New[U point.P](o O[U]) *T[U] {
-	data := make([]U, len(o.Data))
+func New[T point.P](o O[T]) *KD[T] {
+	data := make([]T, len(o.Data))
 	if l := copy(data, o.Data); l != len(o.Data) {
 		panic("could not copy data into k-D tree")
 	}
@@ -35,12 +38,12 @@ func New[U point.P](o O[U]) *T[U] {
 		panic("k-D tree minimum leaf node size must be positive")
 	}
 
-	t := &T[U]{
+	t := &KD[T]{
 		k: o.K,
 		n: o.N,
-		root: tree.New[U](tree.O[U]{
+		root: tree.New[T](tree.O[T]{
 			Data: data,
-			Axis: 0,
+			Axis: vector.AXIS_X,
 			K:    o.K,
 			N:    o.N,
 		}),
@@ -49,21 +52,30 @@ func New[U point.P](o O[U]) *T[U] {
 	return t
 }
 
-func KNN[U point.P](t *T[U], p vector.V, k int, f func(p U) bool) []U {
+func (t *KD[T]) Balance() {
+	t.root = tree.New[T](tree.O[T]{
+		Data: Data(t),
+		Axis: vector.AXIS_X,
+		K:    t.k,
+		N:    t.n,
+	})
+}
+
+func KNN[T point.P](t *KD[T], p vector.V, k int, f func(p T) bool) []T {
 	return knn.KNN(t.root, p, k, f)
 }
-func RangeSearch[U point.P](t *T[U], q hyperrectangle.R, f func(p U) bool) []U {
+func RangeSearch[T point.P](t *KD[T], q hyperrectangle.R, f func(p T) bool) []T {
 	return rangesearch.RangeSearch(t.root, q, f)
 }
 
-func Data[U point.P](t *T[U]) []U {
+func Data[T point.P](t *KD[T]) []T {
 	if t.root.Nil() {
 		return nil
 	}
-	var data []U
+	var data []T
 
-	var n node.N[U]
-	open := []node.N[U]{t.root}
+	var n node.N[T]
+	open := []node.N[T]{t.root}
 	for len(open) > 0 {
 		n, open = open[0], open[1:]
 

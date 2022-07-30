@@ -15,4 +15,5 @@ type C[T point.P] interface {
 	KNN(p vector.V, k int, f filter.F[T]) []T
 	RangeSearch(q hyperrectangle.R, f filter.F[T]) []T
 	Data() []T
+	Balance()
 }

@@ -5,4 +5,4 @@ import (
 	"github.com/downflux/go-kd/x/point/mock"
 )
 
-var _ container.C[mock.P] = &T[mock.P]{}
+var _ container.C[mock.P] = &KD[mock.P]{}

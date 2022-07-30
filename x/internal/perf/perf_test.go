@@ -81,7 +81,7 @@ func BenchmarkKNN(b *testing.B) {
 				for _, size := range util.SizeRange {
 					configs = append(configs, config{
 						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/KNN=%v", k, n, size, f),
-						t: (*ckd.T[*mock.P])(unsafe.Pointer(
+						t: (*ckd.KD[*mock.P])(unsafe.Pointer(
 							kd.New[*mock.P](kd.O[*mock.P]{
 								Data: ps,
 								K:    k,
@@ -132,7 +132,7 @@ func BenchmarkRangeSearch(b *testing.B) {
 				for _, size := range util.SizeRange {
 					configs = append(configs, config{
 						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/Coverage=%v", k, n, size, f),
-						t: (*ckd.T[*mock.P])(unsafe.Pointer(
+						t: (*ckd.KD[*mock.P])(unsafe.Pointer(
 							kd.New[*mock.P](kd.O[*mock.P]{
 								Data: ps,
 								K:    k,

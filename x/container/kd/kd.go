@@ -8,10 +8,11 @@ import (
 	"github.com/downflux/go-kd/x/point"
 )
 
-type T[U point.P] kd.T[U]
+type KD[T point.P] kd.KD[T]
 
-func (t *T[U]) KNN(p vector.V, k int, f filter.F[U]) []U { return kd.KNN((*kd.T[U])(t), p, k, f) }
-func (t *T[U]) RangeSearch(q hyperrectangle.R, f filter.F[U]) []U {
-	return kd.RangeSearch((*kd.T[U])(t), q, f)
+func (t *KD[T]) KNN(p vector.V, k int, f filter.F[T]) []T { return kd.KNN((*kd.KD[T])(t), p, k, f) }
+func (t *KD[T]) RangeSearch(q hyperrectangle.R, f filter.F[T]) []T {
+	return kd.RangeSearch((*kd.KD[T])(t), q, f)
 }
-func (t *T[U]) Data() []U { return kd.Data((*kd.T[U])(t)) }
+func (t *KD[T]) Data() []T { return kd.Data((*kd.KD[T])(t)) }
+func (t *KD[T]) Balance()  { (*kd.KD[T])(t).Balance() }

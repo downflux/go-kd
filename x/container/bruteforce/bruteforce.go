@@ -50,3 +50,4 @@ func (m *L[T]) RangeSearch(q hyperrectangle.R, f filter.F[T]) []T {
 }
 
 func (m *L[T]) Data() []T { return *m }
+func (m *L[T]) Balance()  {}
