@@ -1,9 +1,29 @@
 name: Go
 
 on:
+  pull_request:
+    branches: [ main ]
   push:
     branches: [ main ]
-  pull_request:
+
+jobs:
+
+  presubmit:
+    name: CI Presubmits
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-go@v2
+      with:
+        go-version: 1.18
+
+    - name: Test github.com/downflux/go-kd
+      run: go test github.com/downflux/go-kd/... -timeout=15m
+
+on:
+  push:
     branches: [ main ]
 
 jobs:
@@ -22,5 +42,8 @@ jobs:
     - name: Build github.com/downflux/go-kd
       run: go build -v github.com/downflux/go-kd/...
 
+    - name: Build github.com/downflux/go-kd
+      run: go vet github.com/downflux/go-kd/...
+
     - name: Test github.com/downflux/go-kd
-      run: go test -v github.com/downflux/go-kd/... -bench . -benchmem
+      run: go test -v github.com/downflux/go-kd/... -run ^$ -bench . -benchmem -timeout=60m
