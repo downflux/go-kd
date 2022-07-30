@@ -1,4 +1,3 @@
-// Package rangesearch implements a range search algorithm for a K-D tree.
 package rangesearch
 
 import (
@@ -7,73 +6,66 @@ import (
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/internal/node"
+	"github.com/downflux/go-kd/point"
 )
 
-// Search traverses the K-D tree node and returns all child nodes which are
-// contained in the bounding rectangle.
-func Search(n *node.N, r hyperrectangle.R) []*node.N {
-	if n == nil {
+func RangeSearch[T point.P](n node.N[T], q hyperrectangle.R, f func(p T) bool) []T {
+	if n.Nil() {
 		return nil
 	}
 
-	min := make([]float64, n.P().Dimension())
-	max := make([]float64, n.P().Dimension())
+	min := make([]float64, n.K())
+	max := make([]float64, n.K())
 
-	for i := vector.D(0); i < n.P().Dimension(); i++ {
+	for i := vector.D(0); i < n.K(); i++ {
 		min[i] = math.Inf(-1)
 		max[i] = math.Inf(0)
 	}
 
-	return search(
-		n,
-		&r,
-		hyperrectangle.New(vector.V(min), vector.V(max)),
-		hyperrectangle.New(
-			vector.V(make([]float64, n.P().Dimension())),
-			vector.V(make([]float64, n.P().Dimension())),
-		),
-	)
+	return rangesearch(n, q, *hyperrectangle.New(vector.V(min), vector.V(max)), f)
 }
 
-// search recursively travels through the tree node to look for nodes within the
-// input K-dimensional rectangle. The K-dimensional rectangle input bound is a
-// recursion artifact which keeps track of the bounding box of the current node.
-func search(n *node.N, r *hyperrectangle.R, bound *hyperrectangle.R, buf *hyperrectangle.R) []*node.N {
-	if ok := (*r).IntersectBuf(*bound, buf); n == nil || !ok {
+func rangesearch[T point.P](n node.N[T], q hyperrectangle.R, bound hyperrectangle.R, f func(p T) bool) []T {
+	if _, ok := q.Intersect(bound); n.Nil() || !ok {
 		return nil
 	}
 
-	var ns []*node.N
-
-	if r.In(n.P()) {
-		ns = append(ns, n)
+	var data []T
+	for _, p := range n.Data() {
+		if q.In(p.P()) && f(p) {
+			data = append(data, p)
+		}
 	}
 
-	if c := n.L(); c != nil {
-		// bound is a pointer to a hyperrectangle and is re-used if the
-		// right branch is also not empty -- we need to make sure this
-		// branch does not have any non-hermetic effects on the sibling
-		// branch.
-		max := bound.Max()[n.Axis()]
-
-		// WLOG the bounding box of the left child node will not
-		// contain data from points in the right node. We know the
-		// upper bound of the data in the left node due by definition
-		// of a K-D tree node.
-		bound.Max()[n.Axis()] = n.P().X(n.Axis())
-		ns = append(ns, search(c, r, bound, buf)...)
-
-		// Restore the bounding box dimension for the right child.
-		bound.Max()[n.Axis()] = max
-	}
-	if c := n.R(); c != nil {
-		min := bound.Min()[n.Axis()]
-
-		bound.Min()[n.Axis()] = n.P().X(n.Axis())
-		ns = append(ns, search(c, r, bound, buf)...)
-
-		bound.Min()[n.Axis()] = min
+	if n.Leaf() {
+		return data
 	}
 
-	return ns
+	l := make(chan []T)
+	r := make(chan []T)
+
+	go func(ch chan<- []T) {
+		max := make([]float64, n.K())
+		copy(max, bound.Max())
+		max[n.Axis()] = n.Pivot().X(n.Axis())
+
+		bound := *hyperrectangle.New(bound.Min(), max)
+		ch <- rangesearch(n.L(), q, bound, f)
+		close(ch)
+	}(l)
+	go func(ch chan<- []T) {
+		min := make([]float64, n.K())
+		copy(min, bound.Min())
+		min[n.Axis()] = n.Pivot().X(n.Axis())
+
+		bound := *hyperrectangle.New(min, bound.Max())
+		ch <- rangesearch(n.R(), q, bound, f)
+		close(ch)
+	}(r)
+
+	data = append(data, <-l...)
+	data = append(data, <-r...)
+
+	return data
+
 }

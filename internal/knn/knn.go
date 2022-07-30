@@ -1,109 +1,63 @@
-// Package knn implements k-nearest neighbors search algorithm on a K-D tree node.
 package knn
 
 import (
 	"math"
 
-	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/internal/node"
-	"github.com/downflux/go-kd/internal/pq"
+	"github.com/downflux/go-kd/point"
+	"github.com/downflux/go-kd/point/pq"
+	"github.com/downflux/go-kd/vector"
+
+	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
-// path generates a list of nodes to the root, starting from a leaf.
-func path(n *node.N, v vector.V) []*node.N {
-	if n == nil {
+func path[T point.P](n node.N[T], p vnd.V) []node.N[T] {
+	if n.Nil() {
 		return nil
 	}
-
 	if n.Leaf() {
-		return []*node.N{n}
+		return []node.N[T]{n}
 	}
 
-	// Note that we are bypassing the v == n.P() stop condition check -- we
-	// are always continuing to the leaf node. This is necessary for finding
-	// multiple closest neighbors, as we care about points in the tree which
-	// do not have to coincide with the point coordinates.
-
-	x := v.X(n.Axis())
-	nx := n.P().X(n.Axis())
-
-	if x < nx {
-		return append(path(n.L(), v), n)
+	// Note that we are bypassing the v == n.Pivot() stop condition check --
+	// we are always continuing to the leaf ndoe. This is necessary for
+	// finding multiple closest neighbors, as we care about points in the
+	// tree which do not have to coincide with the point coordinates.
+	if vector.Comparator(n.Axis()).Less(p, n.Pivot()) {
+		return append(path(n.L(), p), n)
 	}
-	return append(path(n.R(), v), n)
+	return append(path(n.R(), p), n)
 }
 
-// KNN returns the k-nearest neighbors of a given node. Nodes are returned in
-// sorted order, with nodes closest to the input vector at the head of the
-// slice.
-func KNN(n *node.N, p vector.V, k int) []*node.N {
-	q := pq.New(k)
-	knn(n, p, q, make([]float64, p.Dimension()))
+func KNN[T point.P](n node.N[T], p vnd.V, k int, f func(p T) bool) []T {
+	q := pq.New[T](k)
+	knn(n, p, q, vnd.V(make([]float64, p.Dimension())), f)
 
-	// q.Pop() returns furthest distance first, so we need to reverse the
-	// queue for the KNN output.
-	ns := make([]*node.N, q.Len())
+	ps := make([]T, q.Len())
 	for i := q.Len() - 1; i >= 0; i-- {
-		ns[i] = q.Pop()
+		ps[i] = q.Pop()
 	}
-
-	return ns
+	return ps
 }
 
-// sub uses the scratch space to calculate the difference between two vectors.
-//
-// Care should be taken that the scratch space is not used concurrently, as
-// subsequent calls will modify the slice.
-func sub(v vector.V, u vector.V, scratch []float64) vector.V {
-	for i := vector.D(0); i < v.Dimension(); i++ {
-		scratch[i] = v.X(i) - u.X(i)
-	}
-	return vector.V(scratch)
-}
-
-// knn recursively searches for the k-nearest neighbors of a node. The priority
-// queue input q in effect tracks the searched space.
-//
-// The scratch input is used to reduce the amount of vector.Sub operations, as
-// the returned vector is copy-constructed.
-//
-// This does not seem have a significant impact relative to the overall
-// execution time, but we do see the overall allocs cut in half.
-//
-// TODO(minkezhang): Determine if this optimization is actually useful.
-func knn(n *node.N, p vector.V, q *pq.Q, scratch []float64) {
-	if n == nil {
-		return
-	}
-
-	for _, n := range path(n, p) {
-		if d := vector.Magnitude(sub(p, n.P(), scratch)); !q.Full() || d < q.Priority() {
-			q.Push(n, d)
+func knn[T point.P](n node.N[T], p vnd.V, q *pq.PQ[T], buf vnd.V, f func(p T) bool) {
+	for _, n := range path[T](n, p) {
+		for _, datum := range n.Data() {
+			vnd.SubBuf(p, datum.P(), buf)
+			if d := vnd.SquaredMagnitude(buf); (!q.Full() || d < q.Priority()) && f(datum) {
+				q.Push(datum, d)
+			}
 		}
 
-		x := p.X(n.Axis())
-		nx := n.P().X(n.Axis())
-
-		// The minimal distance so far exceeds the current node split
-		// plane, so we need to expand into the complement (i.e.
-		// unexplored) child nodes.
-		if q.Priority() > math.Abs(nx-x) {
-
-			// We normally will expand the left child node if
-			//
-			//   x < nx
-			//
-			// however, this was already expanded while
-			// generating the queue; therefore, we want to expand to
-			// the unexplored, complement child instead.
-			var c *node.N
-			if x < nx {
-				c = n.R()
-			} else {
-				c = n.L()
+		if !n.Leaf() {
+			vnd.SubBuf(p, n.Pivot(), buf)
+			if q.Priority() > math.Pow(buf.X(n.Axis()), 2) {
+				if vector.Comparator(n.Axis()).Less(p, n.Pivot()) {
+					knn(n.R(), p, q, buf, f)
+				} else {
+					knn(n.L(), p, q, buf, f)
+				}
 			}
-
-			knn(c, p, q, scratch)
 		}
 	}
 }

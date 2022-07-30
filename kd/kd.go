@@ -1,154 +1,96 @@
-// Package kd implements a K-D tree with arbitrary data packing and duplicate
-// data coordinate support.
-//
-// K-D trees are generally a cacheing layer representation of the local state --
-// we do not expect to be making frequent mutations to this tree once
-// constructed.
-//
-// The tree will have to be rebalanced as data points move in the simulation.
-// For large numbers of points, and for a large number of queries, the time
-// taken to build the tree will be offset by the speedup of subsequent reads.
 package kd
 
 import (
-	"fmt"
-
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
-	"github.com/downflux/go-geometry/nd/hypersphere"
 	"github.com/downflux/go-geometry/nd/vector"
+	"github.com/downflux/go-kd/filter"
 	"github.com/downflux/go-kd/internal/knn"
 	"github.com/downflux/go-kd/internal/node"
+	"github.com/downflux/go-kd/internal/node/tree"
 	"github.com/downflux/go-kd/internal/rangesearch"
 	"github.com/downflux/go-kd/point"
 )
 
-// T is a K-D tree implementation.
-type T struct {
-	root *node.N
-	k    vector.D
+type O[T point.P] struct {
+	Data []T
+	K    vector.D
+
+	// N is the leaf size of the k-D tree. Leaf nodes are checked via
+	// bruteforce methods.
+	N int
 }
 
-func New(data []point.P) (*T, error) {
-	var k vector.D
+type KD[T point.P] struct {
+	k vector.D
+	n int
 
-	if len(data) > 0 {
-		k = data[0].P().Dimension()
-		for _, c := range data {
-			if c.P().Dimension() != k {
-				return nil, fmt.Errorf("cannot create a K-D tree with data of inconsistent dimensions")
-			}
-		}
-	}
-	return &T{
-		// N.B.: node.New() allocates roughly one new object per data
-		// point, for sparse data. This is very inefficient for large
-		// data sets (e.g. for N >> 1e7). If we want to speed up tree
-		// creation, we should migrate to a slice representation instead
-		// (e.g. create K slices, each of which holds node objects with
-		// the matching discriminant axis).
-		root: node.New(data, 0),
-		k:    k,
-	}, nil
+	root node.N[T]
 }
 
-// K represents the number of splitting planes in the tree (i.e. the "K" of the
-// K-D tree).
-func (t *T) K() vector.D { return t.k }
-
-// Balance ensures the tree has minimal height by reconstructing the tree. Note
-// that in general, mutations to the structure of the tree are expensive and
-// complicated, so much so that it's easier to just redo the tree from scratch
-// than to worry about shifting nodes around.
-func (t *T) Balance() { t.root = node.New(node.Data(t.root), 0) }
-
-// Insert adds a new data point into the tree.
-//
-// N.B.: This is not guaranteed to be a balanced insertion -- adding lots of
-// points may unbalance the tree, causing queries to become much slower than in
-// theory. If this function must be called a number of times, it's generally
-// good practice to call Balance() after a while to ensure optimal lookup times.
-func (t *T) Insert(datum point.P) error {
-	if datum.P().Dimension() != t.K() {
-		return fmt.Errorf("cannot insert %v-dimensional data into a %v-dimensional K-D tree", datum.P().Dimension(), t.K())
+func New[T point.P](o O[T]) *KD[T] {
+	data := make([]T, len(o.Data))
+	if l := copy(data, o.Data); l != len(o.Data) {
+		panic("could not copy data into k-D tree")
 	}
-	t.root.Insert(datum)
-	return nil
+	if o.K < 1 {
+		panic("k-D tree must contain points with non-zero length vectors")
+	}
+	if o.N < 1 {
+		panic("k-D tree minimum leaf node size must be positive")
+	}
+
+	t := &KD[T]{
+		k: o.K,
+		n: o.N,
+		root: tree.New[T](tree.O[T]{
+			Data: data,
+			Axis: vector.AXIS_X,
+			K:    o.K,
+			N:    o.N,
+		}),
+	}
+
+	return t
 }
 
-// Remove deletes an existing data point from the tree. This function will
-// delete the first matching point with the given coordinates.
-func (t *T) Remove(position vector.V, f func(datum point.P) bool) (bool, error) {
-	if position.Dimension() != t.K() {
-		return false, fmt.Errorf("cannot delete %v-dimensional data into a %v-dimensional K-D tree", position.Dimension(), t.K())
-	}
-	return t.root.Remove(position, f), nil
-}
-
-// Filter returns a set of data points in the given bounding box. Data points
-// are added to the returned set if they fall inside the bounding box and passes
-// the given filter function.
-func Filter(t *T, r hyperrectangle.R, f func(datum point.P) bool) ([]point.P, error) {
-	if r.Min().Dimension() != t.K() {
-		return nil, fmt.Errorf("cannot use a %v-dimensional bounding box to filter %v-dimensional K-D tree", r.Min().Dimension(), t.K())
-	}
-
-	var data []point.P
-	for _, n := range rangesearch.Search(t.root, r) {
-		for _, p := range n.Data() {
-			if f(p) {
-				data = append(data, p)
-			}
-		}
-	}
-	return data, nil
-}
-
-// RadialFilter returns a set of data points in the given bounding sphere. Data
-// points are added to the returned set if they fall inside the sphere and
-// passes the given filter function.
-func RadialFilter(t *T, c hypersphere.C, f func(datum point.P) bool) ([]point.P, error) {
-	if c.P().Dimension() != t.K() {
-		return nil, fmt.Errorf("cannot use a %v-dimensional ball to filter %v-dimensional K-D tree", c.P().Dimension(), t.K())
-	}
-
-	offset := make([]float64, c.P().Dimension())
-	for i := vector.D(0); i < c.P().Dimension(); i++ {
-		offset[i] = c.R()
-	}
-	r := *hyperrectangle.New(
-		vector.Sub(c.P(), *vector.New(offset...)),
-		vector.Add(c.P(), *vector.New(offset...)),
-	)
-	return Filter(t, r, func(datum point.P) bool {
-		return vector.SquaredMagnitude(vector.Sub(datum.P(), c.P())) <= c.R()*c.R() && f(datum)
+func (t *KD[T]) Balance() {
+	t.root = tree.New[T](tree.O[T]{
+		Data: Data(t),
+		Axis: vector.AXIS_X,
+		K:    t.k,
+		N:    t.n,
 	})
 }
 
-// KNN returns the k-nearest neighbors of the given search coordinates.
-//
-// N.B.: KNN will return at max k neighbors; in the degenerate case that
-// multiple data points reside at the same spacial coordinate, this function
-// will arbitrarily return a subset of these to fulfill the k neighbors
-// criteria.
-func KNN(t *T, position vector.V, k int) ([]point.P, error) {
-	if position.Dimension() != t.K() {
-		return nil, fmt.Errorf("cannot use a %v-dimensional position to filter %v-dimensional K-D tree", position.Dimension(), t.K())
-	}
+func (t *KD[T]) Insert(p T)                                 { t.root.Insert(p) }
+func (t *KD[T]) Remove(v vector.V, f filter.F[T]) (T, bool) { return t.root.Remove(v, f) }
 
-	// We know the upper bound of elements to return.
-	data := make([]point.P, 0, k)
-
-	for _, n := range knn.KNN(t.root, position, k) {
-		if len(data) < k {
-			data = append(data, n.Data()...)
-		} else {
-			break
-		}
-	}
-	return data, nil
+func KNN[T point.P](t *KD[T], p vector.V, k int, f filter.F[T]) []T {
+	return knn.KNN(t.root, p, k, f)
+}
+func RangeSearch[T point.P](t *KD[T], q hyperrectangle.R, f filter.F[T]) []T {
+	return rangesearch.RangeSearch(t.root, q, f)
 }
 
-// Data returns all data stored in the K-D tree.
-func Data(t *T) []point.P {
-	return node.Data(t.root)
+func Data[T point.P](t *KD[T]) []T {
+	if t.root.Nil() {
+		return nil
+	}
+	var data []T
+
+	var n node.N[T]
+	open := []node.N[T]{t.root}
+	for len(open) > 0 {
+		n, open = open[0], open[1:]
+
+		data = append(data, n.Data()...)
+		if !n.L().Nil() {
+			open = append(open, n.L())
+		}
+		if !n.R().Nil() {
+			open = append(open, n.R())
+		}
+	}
+
+	return data
 }
