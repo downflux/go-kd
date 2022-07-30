@@ -5,21 +5,14 @@ import (
 
 	"github.com/downflux/go-kd/x/internal/node"
 	"github.com/downflux/go-kd/x/internal/node/util"
-	"github.com/downflux/go-kd/x/point"
 	"github.com/downflux/go-kd/x/point/mock"
 	"github.com/downflux/go-kd/x/vector"
+	"github.com/google/go-cmp/cmp"
 
 	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
 var _ node.N[mock.P] = &N[mock.P]{}
-
-func equal[T point.P](n *N[T], m *N[T]) bool {
-	if n == nil || m == nil {
-		return n == m
-	}
-	return vnd.Within(n.Pivot(), m.Pivot()) && equal(n.left, m.left) && equal(n.right, m.right)
-}
 
 func TestNew(t *testing.T) {
 	type config struct {
@@ -54,7 +47,14 @@ func TestNew(t *testing.T) {
 				Axis: 0,
 			},
 			want: &N[mock.P]{
+				data: []mock.P{
+					{
+						X:    mock.U(1),
+						Data: "foo",
+					},
+				},
 				axis: 0,
+				k:    1,
 			},
 		},
 		{
@@ -75,9 +75,23 @@ func TestNew(t *testing.T) {
 				Axis: 0,
 			},
 			want: &N[mock.P]{
+				data: []mock.P{
+					{
+						X:    mock.U(1),
+						Data: "bar",
+					},
+				},
 				pivot: mock.U(1),
+				k:     1,
 				axis:  0,
 				left: &N[mock.P]{
+					data: []mock.P{
+						{
+							X:    mock.U(-100),
+							Data: "foo",
+						},
+					},
+					k:    1,
 					axis: 0,
 				},
 			},
@@ -102,9 +116,24 @@ func TestNew(t *testing.T) {
 				Axis: 0,
 			},
 			want: &N[mock.P]{
+				data: []mock.P{
+
+					mock.P{
+						X:    mock.U(100),
+						Data: "B",
+					},
+				},
+				k:     1,
 				pivot: mock.U(100),
 				axis:  0,
 				right: &N[mock.P]{
+					data: []mock.P{
+						mock.P{
+							X:    mock.U(100),
+							Data: "A",
+						},
+					},
+					k:    1,
 					axis: 0,
 				},
 			},
@@ -131,9 +160,27 @@ func TestNew(t *testing.T) {
 				Axis: 0,
 			},
 			want: &N[mock.P]{
+				data: []mock.P{
+					{
+						X:    mock.U(-100),
+						Data: "foo",
+					},
+				},
+				k:     1,
 				pivot: mock.U(-100),
 				axis:  0,
 				right: &N[mock.P]{
+					data: []mock.P{
+						{
+							X:    mock.U(1),
+							Data: "bar",
+						},
+						{
+							X:    mock.U(0),
+							Data: "baz",
+						},
+					},
+					k:    1,
 					axis: 0,
 				},
 			},
@@ -160,9 +207,27 @@ func TestNew(t *testing.T) {
 				Axis: 0,
 			},
 			want: &N[mock.P]{
+				data: []mock.P{
+					{
+						X:    mock.V(*vnd.New(-100, 1)),
+						Data: "foo",
+					},
+				},
+				k:     2,
 				pivot: mock.V(*vnd.New(-100, 1)),
 				axis:  0,
 				right: &N[mock.P]{
+					data: []mock.P{
+						{
+							X:    mock.V(*vnd.New(1, 50)),
+							Data: "bar",
+						},
+						{
+							X:    mock.V(*vnd.New(0, 75)),
+							Data: "baz",
+						},
+					},
+					k:    2,
 					axis: 1,
 				},
 			},
@@ -189,12 +254,33 @@ func TestNew(t *testing.T) {
 				Axis: 0,
 			},
 			want: &N[mock.P]{
+				data: []mock.P{
+					{
+						X:    mock.U(-100),
+						Data: "foo",
+					},
+				},
+				k:     1,
 				pivot: mock.U(-100),
 				axis:  0,
 				right: &N[mock.P]{
+					data: []mock.P{
+						{
+							X:    mock.U(1),
+							Data: "bar",
+						},
+					},
+					k:     1,
 					pivot: mock.U(1),
-					axis:  1,
+					axis:  0,
 					left: &N[mock.P]{
+						data: []mock.P{
+							{
+								X:    mock.U(0),
+								Data: "baz",
+							},
+						},
+						k:    1,
 						axis: 0,
 					},
 				},
@@ -223,11 +309,32 @@ func TestNew(t *testing.T) {
 			},
 			want: &N[mock.P]{
 				pivot: mock.V(*vnd.New(-100, 1)),
-				axis:  0,
+				data: []mock.P{
+					{
+						X:    mock.V(*vnd.New(-100, 1)),
+						Data: "foo",
+					},
+				},
+				k:    2,
+				axis: 0,
 				right: &N[mock.P]{
 					pivot: mock.V(*vnd.New(1, 50)),
-					axis:  1,
+					data: []mock.P{
+						{
+							X:    mock.V(*vnd.New(1, 50)),
+							Data: "bar",
+						},
+					},
+					k:    2,
+					axis: 1,
 					right: &N[mock.P]{
+						data: []mock.P{
+							{
+								X:    mock.V(*vnd.New(0, 75)),
+								Data: "baz",
+							},
+						},
+						k:    2,
 						axis: 0,
 					},
 				},
@@ -238,12 +345,8 @@ func TestNew(t *testing.T) {
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
 			got := New[mock.P](c.opts)
-			if !equal(got, c.want) {
-				t.Errorf("New() = %v, want = %v", got, c.want)
-			}
-
-			if got == nil {
-				return
+			if diff := cmp.Diff(c.want, got, cmp.AllowUnexported(N[mock.P]{})); diff != "" {
+				t.Errorf("New() mismatch (-want, +got):\n%v", diff)
 			}
 
 			if util.Validate[mock.P](got) != true {
@@ -475,10 +578,8 @@ func TestHoare(t *testing.T) {
 				t.Errorf("hoare() = %v, want = %v", got, c.want.pivot)
 			}
 
-			for i, got := range c.data {
-				if !mock.Equal(got, c.want.data[i]) {
-					t.Errorf("data[i] = %v, want = %v", got, c.want.data[i])
-				}
+			if diff := cmp.Diff(c.want.data, c.data); diff != "" {
+				t.Errorf("hoare() mismatch (-want +got):\n%v", diff)
 			}
 		})
 	}

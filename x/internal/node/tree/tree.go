@@ -3,34 +3,36 @@ package tree
 import (
 	"fmt"
 
-	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/x/internal/node"
 	"github.com/downflux/go-kd/x/point"
+	"github.com/downflux/go-kd/x/vector"
+
+	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
 type O[T point.P] struct {
 	Data []T
-	K    vector.D
+	K    vnd.D
 
 	// N is the nominal leaf size of a node.
 	N int
 
-	Axis vector.D
+	Axis vnd.D
 }
 
 type N[T point.P] struct {
 	data []T
 
-	k     vector.D
-	pivot vector.V
-	axis  vector.D
+	k     vnd.D
+	pivot vnd.V
+	axis  vnd.D
 	left  *N[T]
 	right *N[T]
 }
 
 func validate[T point.P](o O[T]) error {
 	if o.Axis >= o.K {
-		return fmt.Errorf("given node dimension greater than vector dimension: %v > %v", o.Axis, o.K)
+		return fmt.Errorf("given node dimension greater than vnd dimension: %v > %v", o.Axis, o.K)
 	}
 	if o.N < 1 {
 		return fmt.Errorf("given leaf node size must be a positive integer")
@@ -54,7 +56,7 @@ func New[T point.P](o O[T]) *N[T] {
 			k:    o.K,
 		}
 	}
-	pivot := hoare(o.Data, 0, 0, len(o.Data), func(a vector.V, b vector.V) bool { return a.X(o.Axis) < b.X(o.Axis) })
+	pivot := hoare(o.Data, 0, 0, len(o.Data), func(a vnd.V, b vnd.V) bool { return a.X(o.Axis) < b.X(o.Axis) })
 
 	node := &N[T]{
 		data:  []T{o.Data[pivot]},
@@ -97,20 +99,52 @@ func New[T point.P](o O[T]) *N[T] {
 	return node
 }
 
-func (n *N[T]) Nil() bool       { return n == nil }
-func (n *N[T]) L() node.N[T]    { return n.left }
-func (n *N[T]) R() node.N[T]    { return n.right }
-func (n *N[T]) Leaf() bool      { return n.pivot == nil }
-func (n *N[T]) Axis() vector.D  { return n.axis }
-func (n *N[T]) Pivot() vector.V { return n.pivot }
-func (n *N[T]) Data() []T       { return n.data }
-func (n *N[T]) K() vector.D     { return n.k }
+func (n *N[T]) Nil() bool    { return n == nil }
+func (n *N[T]) L() node.N[T] { return n.left }
+func (n *N[T]) R() node.N[T] { return n.right }
+func (n *N[T]) Leaf() bool   { return n.pivot == nil }
+func (n *N[T]) Axis() vnd.D  { return n.axis }
+func (n *N[T]) Pivot() vnd.V { return n.pivot }
+func (n *N[T]) Data() []T    { return n.data }
+func (n *N[T]) K() vnd.D     { return n.k }
+
+func (n *N[T]) Insert(p T) {
+	if n.Leaf() || !n.Leaf() && vnd.Within(n.Pivot(), p.P()) {
+		n.data = append(n.data, p)
+		return
+	}
+
+	if vector.Comparator(n.Axis()).Less(p.P(), n.Pivot()) {
+		n.L().Insert(p)
+	}
+	n.R().Insert(p)
+}
+
+func (n *N[T]) Remove(v vnd.V, f func(p T) bool) (bool, T) {
+	var blank T
+	if n.Leaf() || !n.Leaf() && vnd.Within(n.Pivot(), v) {
+		for i, p := range n.Data() {
+			if f(p) {
+				n.data[i], n.data[len(n.data)-1] = n.data[len(n.data)-1], blank
+				n.data = n.data[:len(n.data)-1]
+
+				return true, p
+			}
+		}
+		return false, blank
+	}
+
+	if vector.Comparator(n.Axis()).Less(v, n.Pivot()) {
+		return n.L().Remove(v, f)
+	}
+	return n.R().Remove(v, f)
+}
 
 // hoare partitions the input data by the pivot.
 //
 // N.B.: The high index is exclusive -- that is, when partitioning an entire
 // array, high should be set to len(data).
-func hoare[T point.P](data []T, pivot int, low int, high int, less func(a vector.V, b vector.V) bool) int {
+func hoare[T point.P](data []T, pivot int, low int, high int, less func(a vnd.V, b vnd.V) bool) int {
 	if pivot < 0 || low < 0 || high < 0 || pivot >= len(data) || low >= len(data) || high > len(data) {
 		return -1
 	}

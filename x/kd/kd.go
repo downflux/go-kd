@@ -3,6 +3,7 @@ package kd
 import (
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 	"github.com/downflux/go-geometry/nd/vector"
+	"github.com/downflux/go-kd/x/filter"
 	"github.com/downflux/go-kd/x/internal/knn"
 	"github.com/downflux/go-kd/x/internal/node"
 	"github.com/downflux/go-kd/x/internal/node/tree"
@@ -61,10 +62,13 @@ func (t *KD[T]) Balance() {
 	})
 }
 
-func KNN[T point.P](t *KD[T], p vector.V, k int, f func(p T) bool) []T {
+func (t *KD[T]) Insert(p T)                                 { t.root.Insert(p) }
+func (t *KD[T]) Remove(v vector.V, f filter.F[T]) (bool, T) { return t.root.Remove(v, f) }
+
+func KNN[T point.P](t *KD[T], p vector.V, k int, f filter.F[T]) []T {
 	return knn.KNN(t.root, p, k, f)
 }
-func RangeSearch[T point.P](t *KD[T], q hyperrectangle.R, f func(p T) bool) []T {
+func RangeSearch[T point.P](t *KD[T], q hyperrectangle.R, f filter.F[T]) []T {
 	return rangesearch.RangeSearch(t.root, q, f)
 }
 

@@ -18,6 +18,9 @@ type N[T point.P] interface {
 	// does not include data from child nodes.
 	Data() []T
 
+	Insert(p T)
+	Remove(v vector.V, f func(p T) bool) (bool, T)
+
 	Pivot() vector.V
 	K() vector.D
 	Axis() vector.D

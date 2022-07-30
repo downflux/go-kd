@@ -28,9 +28,15 @@ type C[T point.P] interface {
 	// bounding box and passes the given filter function.
 	RangeSearch(q hyperrectangle.R, f filter.F[T]) []T
 
-	// Balance ensures the tree has minimal height by reconstructing the
-	// tree. Note that in general, mutations to the structure of the tree
-	// are expensive and complicated, so much so that it's easier to just
-	// redo the tree from scratch than to worry about shifting nodes around.
+	// Balance() upates the container after a set of mutations. For a k-D
+	// tree, this is a rebalance operation.
 	Balance()
+
+	// Insert adds a new data point into the container.
+	Insert(p T)
+
+	// Remove deletes an existing data point from the container. This
+	// function will delete the first matching point with the given
+	// coordinates.
+	Remove(p vector.V, f filter.F[T]) (bool, T)
 }
