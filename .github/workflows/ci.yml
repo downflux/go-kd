@@ -18,10 +18,10 @@ jobs:
         go-version: 1.18
 
     - name: Build github.com/downflux/go-kd
-      run: go build -v github.com/downflux/go-kd/...
+      run: go build github.com/downflux/go-kd/...
 
     - name: Build github.com/downflux/go-kd
       run: go vet github.com/downflux/go-kd/...
 
     - name: Test github.com/downflux/go-kd
-      run: go test -v github.com/downflux/go-kd/... -run ^$ -bench . -benchmem -timeout=60m
+      run: go test github.com/downflux/go-kd/... -run ^$ -bench . -benchmem -timeout=60m
