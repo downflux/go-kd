@@ -36,7 +36,7 @@ type C[T point.P] interface {
 	Insert(p T)
 
 	// Remove deletes an existing data point from the container. This
-	// function will delete the first matching point with the given
+	// function will delete an arbitrary matching point with the given
 	// coordinates.
 	Remove(p vector.V, f filter.F[T]) (T, bool)
 }
