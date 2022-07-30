@@ -15,8 +15,15 @@ type O[T point.P] struct {
 	Data []T
 	K    vector.D
 
-	// N is the leaf size of the k-D tree. Leaf nodes are checked via
-	// bruteforce methods.
+	// N is the nominal leaf size of the k-D tree. Leaf nodes are checked
+	// via bruteforce methods.
+	//
+	// Note that individual nodes (including non-leaf nodes) may contain
+	// elements that exceed this size constraint after inserts and removes.
+	//
+	// Leaf size will significantly impact performance -- users should
+	// tailor this value to their specific use-case. We recommend setting
+	// this value to 16 and up as the size of the data set increases.
 	N int
 }
 
@@ -53,6 +60,9 @@ func New[T point.P](o O[T]) *KD[T] {
 	return t
 }
 
+// Balance reconstructs the k-D tree.
+//
+// This k-D tree implementation does not support concurrent mutations.
 func (t *KD[T]) Balance() {
 	t.root = tree.New[T](tree.O[T]{
 		Data: Data(t),
@@ -62,16 +72,46 @@ func (t *KD[T]) Balance() {
 	})
 }
 
-func (t *KD[T]) Insert(p T)                                 { t.root.Insert(p) }
+// Insert adds a new point into the k-D tree.
+//
+// Insert is not a balanced operation -- after many mutations, the tree should
+// be explicitly reconstructed.
+//
+// This k-D tree implementation does not support concurrent mutations.
+func (t *KD[T]) Insert(p T) { t.root.Insert(p) }
+
+// Remove pops a point from the k-D tree which lies at the input vector v and
+// matches the filter. Note that if multiple points match both the location
+// vector and the filter, an arbitrary one will be removed. This function will
+// pop at most one element from the k-D tree.
+//
+// Remove is not a balanced operation -- after many mutations, the tree should
+// be explicitly reconstructed.
+//
+// This k-D tree implementation does not support concurrent mutations.
+//
+// If there is no matching point, the returned bool will be false.
 func (t *KD[T]) Remove(v vector.V, f filter.F[T]) (T, bool) { return t.root.Remove(v, f) }
 
+// KNN returns the k nearest neighbors to the input vector p and matches the
+// filter function.
+//
+// This k-D tree implementation supports concurrent read operations.
 func KNN[T point.P](t *KD[T], p vector.V, k int, f filter.F[T]) []T {
 	return knn.KNN(t.root, p, k, f)
 }
+
+// RangeSearch returns all points which are found in the given bounds and
+// matches the filter function.
+//
+// This k-D tree implementation supports concurrent read operations.
 func RangeSearch[T point.P](t *KD[T], q hyperrectangle.R, f filter.F[T]) []T {
 	return rangesearch.RangeSearch(t.root, q, f)
 }
 
+// Data returns all points in the k-D tree.
+//
+// This k-D tree implementation supports concurrent read operations.
 func Data[T point.P](t *KD[T]) []T {
 	if t.root.Nil() {
 		return nil
