@@ -14,6 +14,56 @@ import (
 
 var _ node.N[mock.P] = &N[mock.P]{}
 
+func TestInsert(t *testing.T) {
+	type config struct {
+		name string
+		opts O[mock.P]
+		ps   []mock.P
+
+		want *N[mock.P]
+	}
+
+	configs := []config{}
+
+	for _, c := range configs {
+		t.Run(c.name, func(t *testing.T) {
+			kd := New(c.opts)
+			for _, p := range c.ps {
+				kd.Insert(p)
+			}
+
+			if diff := cmp.Diff(kd, c.want, cmp.AllowUnexported(N[mock.P]{})); diff != "" {
+				t.Errorf("Insert() mismatch(-want +got):\n%v", diff)
+			}
+		})
+	}
+}
+
+func TestRemove(t *testing.T) {
+	type config struct {
+		name string
+		opts O[mock.P]
+		ps   []mock.P
+
+		want *N[mock.P]
+	}
+
+	configs := []config{}
+
+	for _, c := range configs {
+		t.Run(c.name, func(t *testing.T) {
+			kd := New(c.opts)
+			for _, p := range c.ps {
+				kd.Remove(p.P(), func(q mock.P) bool { return mock.Equal(p, q) })
+			}
+
+			if diff := cmp.Diff(kd, c.want, cmp.AllowUnexported(N[mock.P]{})); diff != "" {
+				t.Errorf("Insert() mismatch(-want +got):\n%v", diff)
+			}
+		})
+	}
+}
+
 func TestNew(t *testing.T) {
 	type config struct {
 		name string
