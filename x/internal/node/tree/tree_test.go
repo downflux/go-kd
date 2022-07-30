@@ -23,7 +23,192 @@ func TestInsert(t *testing.T) {
 		want *N[mock.P]
 	}
 
-	configs := []config{}
+	configs := []config{
+		{
+			name: "Nil",
+			opts: O[mock.P]{
+				Data: nil,
+				K:    1,
+				N:    1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.U(1)},
+				mock.P{X: mock.U(-50)},
+				mock.P{X: mock.U(100)},
+			},
+			want: &N[mock.P]{
+				k:    1,
+				axis: 0,
+				data: []mock.P{
+					mock.P{X: mock.U(1)},
+					mock.P{X: mock.U(-50)},
+					mock.P{X: mock.U(100)},
+				},
+			},
+		},
+		{
+			name: "L",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					mock.P{X: mock.U(1)},
+					mock.P{X: mock.U(-50)},
+				},
+				K: 1,
+				N: 1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.U(0)},
+				mock.P{X: mock.U(-55)},
+			},
+			want: &N[mock.P]{
+				k:     1,
+				axis:  0,
+				pivot: mock.U(1),
+				data: []mock.P{
+					mock.P{X: mock.U(1)},
+				},
+				left: &N[mock.P]{
+					k:    1,
+					axis: 0,
+					data: []mock.P{
+						mock.P{X: mock.U(-50)},
+						mock.P{X: mock.U(0)},
+						mock.P{X: mock.U(-55)},
+					},
+				},
+			},
+		},
+		{
+			name: "R",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					mock.P{X: mock.U(1)},
+					mock.P{X: mock.U(50)},
+				},
+				K: 1,
+				N: 1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.U(2)},
+				mock.P{X: mock.U(100)},
+			},
+			want: &N[mock.P]{
+				k:     1,
+				axis:  0,
+				pivot: mock.U(1),
+				data: []mock.P{
+					mock.P{X: mock.U(1)},
+				},
+				right: &N[mock.P]{
+					k:    1,
+					axis: 0,
+					data: []mock.P{
+						mock.P{X: mock.U(50)},
+						mock.P{X: mock.U(2)},
+						mock.P{X: mock.U(100)},
+					},
+				},
+			},
+		},
+		{
+			name: "Pivot",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					mock.P{X: mock.U(1)},
+					mock.P{X: mock.U(50)},
+				},
+				K: 1,
+				N: 1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.U(1), Data: "B"},
+				mock.P{X: mock.U(1), Data: "C"},
+			},
+			want: &N[mock.P]{
+				k:     1,
+				axis:  0,
+				pivot: mock.U(1),
+				data: []mock.P{
+					mock.P{X: mock.U(1)},
+					mock.P{X: mock.U(1), Data: "B"},
+					mock.P{X: mock.U(1), Data: "C"},
+				},
+				right: &N[mock.P]{
+					k:    1,
+					axis: 0,
+					data: []mock.P{
+						mock.P{X: mock.U(50)},
+					},
+				},
+			},
+		},
+		{
+			name: "L/LargeK",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					mock.P{X: mock.V([]float64{1, 40})},
+					mock.P{X: mock.V([]float64{-50, 70})},
+				},
+				K: 2,
+				N: 1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.V([]float64{-55, 100})},
+				mock.P{X: mock.V([]float64{0, 2})},
+			},
+			want: &N[mock.P]{
+				k:     2,
+				axis:  0,
+				pivot: mock.V([]float64{1, 40}),
+				data: []mock.P{
+					mock.P{X: mock.V([]float64{1, 40})},
+				},
+				left: &N[mock.P]{
+					k:    2,
+					axis: 1,
+					data: []mock.P{
+						mock.P{X: mock.V([]float64{-50, 70})},
+						mock.P{X: mock.V([]float64{-55, 100})},
+						mock.P{X: mock.V([]float64{0, 2})},
+					},
+				},
+			},
+		},
+		{
+			name: "R/LargeK",
+			opts: O[mock.P]{
+				Data: []mock.P{
+					mock.P{X: mock.V([]float64{-50, 70})},
+					mock.P{X: mock.V([]float64{1, 40})},
+				},
+				K: 2,
+				N: 1,
+			},
+			ps: []mock.P{
+				mock.P{X: mock.V([]float64{-49, 100})},
+				mock.P{X: mock.V([]float64{1, 100})},
+				mock.P{X: mock.V([]float64{49, 2})},
+			},
+			want: &N[mock.P]{
+				k:     2,
+				axis:  0,
+				pivot: mock.V([]float64{-50, 70}),
+				data: []mock.P{
+					mock.P{X: mock.V([]float64{-50, 70})},
+				},
+				right: &N[mock.P]{
+					k:    2,
+					axis: 1,
+					data: []mock.P{
+						mock.P{X: mock.V([]float64{1, 40})},
+						mock.P{X: mock.V([]float64{-49, 100})},
+						mock.P{X: mock.V([]float64{1, 100})},
+						mock.P{X: mock.V([]float64{49, 2})},
+					},
+				},
+			},
+		},
+	}
 
 	for _, c := range configs {
 		t.Run(c.name, func(t *testing.T) {
@@ -81,7 +266,9 @@ func TestNew(t *testing.T) {
 				N:    1,
 				Axis: 0,
 			},
-			want: nil,
+			want: &N[mock.P]{
+				k: 2,
+			},
 		},
 		{
 			name: "SingleElement",

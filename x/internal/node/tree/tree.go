@@ -41,14 +41,13 @@ func validate[T point.P](o O[T]) error {
 }
 
 // New recursively constructs a node object given the input data.
+//
+// An input of an empty dataset will result in a leaf node being returned.
 func New[T point.P](o O[T]) *N[T] {
 	if err := validate(o); err != nil {
 		panic(fmt.Sprintf("could not construct node: %v", err))
 	}
 
-	if len(o.Data) <= 0 {
-		return nil
-	}
 	if len(o.Data) <= o.N {
 		return &N[T]{
 			data: o.Data,
@@ -93,8 +92,14 @@ func New[T point.P](o O[T]) *N[T] {
 		close(ch)
 	}(r)
 
-	node.left = <-l
-	node.right = <-r
+	// Skip adding child nodes if they do not contain data -- this prevents
+	// extraneous leaves from being added.
+	if n := <-l; len(n.Data()) > 0 {
+		node.left = n
+	}
+	if n := <-r; len(n.Data()) > 0 {
+		node.right = n
+	}
 
 	return node
 }
@@ -116,6 +121,7 @@ func (n *N[T]) Insert(p T) {
 
 	if vector.Comparator(n.Axis()).Less(p.P(), n.Pivot()) {
 		n.L().Insert(p)
+		return
 	}
 	n.R().Insert(p)
 }
