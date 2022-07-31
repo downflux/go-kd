@@ -2,7 +2,7 @@
 
 Golang K-D tree implementation with duplicate coordinate support
 
-See https://en.wikipedia.org/wiki/K-d_tree for more information.
+See [Wikipedia](https://en.wikipedia.org/wiki/K-d_tree) for more information.
 
 ## Testing
 
@@ -20,11 +20,9 @@ import (
 
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
 	"github.com/downflux/go-geometry/nd/vector"
-	"github.com/downflux/go-kd/container"
-	"github.com/downflux/go-kd/container/kd"
 	"github.com/downflux/go-kd/point"
 
-	ckd "github.com/downflux/go-kd/kd"
+	"github.com/downflux/go-kd/kd"
 )
 
 // P implements the point.P interface, which needs to provide a coordinate
@@ -46,20 +44,15 @@ func main() {
 	}
 
 	// Data is copy-constructed and may be read from outside the k-D tree.
-	//
-	// N.B.: We are casting the k-D tree into a container type, as this
-	// allows for the user to easily switch between implementations. The
-	// user may directly consume the kd package API instead.
-	var t container.C[*P] = (*kd.KD[*P])(
-		ckd.New[*P](ckd.O[*P]{
-			Data: data,
-			K:    2,
-			N:    1,
-		}),
-	)
+	t := kd.New[*P](kd.O[*P]{
+		Data: data,
+		K:    2,
+		N:    1,
+	})
 
 	fmt.Println("KNN search")
-	for _, p := range t.KNN(
+	for _, p := range kd.KNN(
+		t,
 		/* v = */ vector.V{0, 0},
 		/* k = */ 2,
 		func(p *P) bool { return true }) {
@@ -74,7 +67,8 @@ func main() {
 	// RangeSearch returns all points within the k-D bounds and matches the
 	// input filter function.
 	fmt.Println("range search")
-	for _, p := range t.RangeSearch(
+	for _, p := range kd.RangeSearch(
+		t,
 		*hyperrectangle.New(
 			/* min = */ vector.V{0, 0},
 			/* max = */ vector.V{100, 100},
