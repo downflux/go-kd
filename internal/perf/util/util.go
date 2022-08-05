@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"runtime"
@@ -14,16 +15,63 @@ import (
 )
 
 var (
-	BenchmarkKRange    = []vector.D{2, 16, 128}
-	BenchmarkNRange    = []int{1e3, 1e4, 1e6}
-	BenchmarkSizeRange = []int{1, 32, 512}
-	BenchmarkFRange    = []float64{0.05, 0.1, 0.25}
-
 	KRange    = []vector.D{2}
 	NRange    = []int{1e3}
 	SizeRange = []int{1, 16}
 	FRange    = []float64{0.05}
 )
+
+type PerfTestSize int
+
+const (
+	SizeUnknown PerfTestSize = iota
+	SizeSmall
+	SizeLarge
+)
+
+func (s *PerfTestSize) String() string {
+	return map[PerfTestSize]string{
+		SizeSmall: "small",
+		SizeLarge: "large",
+	}[*s]
+}
+
+func (s *PerfTestSize) Set(v string) error {
+	size, ok := map[string]PerfTestSize{
+		"small": SizeSmall,
+		"large": SizeLarge,
+	}[v]
+	if !ok {
+		return fmt.Errorf("invalid test size value: %v", v)
+	}
+	*s = size
+	return nil
+}
+
+func BenchmarkFRange(s PerfTestSize) []float64 {
+	return map[PerfTestSize][]float64{
+		SizeSmall: []float64{0.05},
+		SizeLarge: []float64{0.05, 0.1, 0.25},
+	}[s]
+}
+
+func BenchmarkSizeRange(s PerfTestSize) []int {
+	return []int{1, 32, 512}
+}
+
+func BenchmarkNRange(s PerfTestSize) []int {
+	return map[PerfTestSize][]int{
+		SizeSmall: []int{1e3, 1e4},
+		SizeLarge: []int{1e3, 1e4, 1e6},
+	}[s]
+}
+
+func BenchmarkKRange(s PerfTestSize) []vector.D {
+	return map[PerfTestSize][]vector.D{
+		SizeSmall: []vector.D{2, 16},
+		SizeLarge: []vector.D{2, 16, 128},
+	}[s]
+}
 
 func TrivialFilter(p *mock.P) bool { return true }
 
