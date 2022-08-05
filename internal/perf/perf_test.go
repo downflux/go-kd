@@ -9,6 +9,7 @@ import (
 	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/container"
 	"github.com/downflux/go-kd/container/bruteforce"
+	"github.com/downflux/go-kd/container/kyroy"
 	"github.com/downflux/go-kd/internal/perf/util"
 	"github.com/downflux/go-kd/kd"
 	"github.com/downflux/go-kd/point/mock"
@@ -22,15 +23,24 @@ func BenchmarkNew(b *testing.B) {
 		k    vector.D
 		n    int
 
+		// kyroy implementation does not take a leaf-size parameter.
+		kyroy bool
+
 		size int
 	}
 
 	var configs []config
 	for _, k := range util.BenchmarkKRange {
 		for _, n := range util.BenchmarkNRange {
+			configs = append(configs, config{
+				name:  fmt.Sprintf("kyroy/K=%v/N=%v", k, n),
+				k:     k,
+				n:     n,
+				kyroy: true,
+			})
 			for _, size := range util.BenchmarkSizeRange {
 				configs = append(configs, config{
-					name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v", k, n, size),
+					name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v", k, n, size),
 					k:    k,
 					n:    n,
 					size: size,
@@ -41,15 +51,24 @@ func BenchmarkNew(b *testing.B) {
 
 	for _, c := range configs {
 		ps := util.Generate(c.n, c.k)
-		b.Run(c.name, func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
-				kd.New[*mock.P](kd.O[*mock.P]{
-					Data: ps,
-					K:    c.k,
-					N:    c.size,
-				})
-			}
-		})
+
+		if c.kyroy {
+			b.Run(c.name, func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					kyroy.New[*mock.P](ps)
+				}
+			})
+		} else {
+			b.Run(c.name, func(b *testing.B) {
+				for i := 0; i < b.N; i++ {
+					kd.New[*mock.P](kd.O[*mock.P]{
+						Data: ps,
+						K:    c.k,
+						N:    c.size,
+					})
+				}
+			})
+		}
 	}
 }
 
@@ -77,6 +96,15 @@ func BenchmarkKNN(b *testing.B) {
 
 			for _, f := range util.BenchmarkFRange {
 				knn := int(float64(n) * f)
+
+				// kyroy implementation does not take a
+				// leaf-size parameter.
+				configs = append(configs, config{
+					name: fmt.Sprintf("kyroy/K=%v/N=%v/KNN=%v", k, n, f),
+					t:    kyroy.New[*mock.P](ps),
+					p:    vector.V(make([]float64, k)),
+					knn:  knn,
+				})
 
 				for _, size := range util.BenchmarkSizeRange {
 					configs = append(configs, config{
@@ -128,6 +156,14 @@ func BenchmarkRangeSearch(b *testing.B) {
 
 			for _, f := range util.BenchmarkFRange {
 				q := util.RH(k, f)
+
+				// kyroy implementation does not take a
+				// leaf-size parameter.
+				configs = append(configs, config{
+					name: fmt.Sprintf("kyroy/K=%v/N=%v/Coverage=%v", k, n, f),
+					t:    kyroy.New[*mock.P](ps),
+					q:    q,
+				})
 
 				for _, size := range util.BenchmarkSizeRange {
 					configs = append(configs, config{
