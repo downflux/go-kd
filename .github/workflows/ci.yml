@@ -9,7 +9,6 @@ jobs:
   presubmit:
     name: CI Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 60
 
     steps:
     - uses: actions/checkout@v2
@@ -25,4 +24,4 @@ jobs:
       run: go vet github.com/downflux/go-kd/...
 
     - name: Test github.com/downflux/go-kd
-      run: go test github.com/downflux/go-kd/... -run ^$ -bench . -benchmem -timeout=60m
+      run: go test github.com/downflux/go-kd/... -run ^$ -bench . -benchmem -timeout=10m

@@ -1,7 +1,18 @@
+// Package perf runs a suite of perf tests.
+//
+// CI tests are run against a smaller set of configurations in order to fit into
+// computational time constraints. To run the full set of tests (which make take
+// up to an hour), run
+//
+// go test github.com/downflux/go-kd/internal/perf \
+//   -bench . -benchmem -timeout=60m \
+//   -args -performance_test_size=large
 package perf
 
 import (
+	"flag"
 	"fmt"
+	"os"
 	"testing"
 	"unsafe"
 
@@ -17,6 +28,17 @@ import (
 	ckd "github.com/downflux/go-kd/container/kd"
 )
 
+var (
+	SuiteSize = util.SizeSmall
+)
+
+func TestMain(m *testing.M) {
+	flag.Var(&SuiteSize, "performance_test_size", "performance test size, one of (small | large)")
+	flag.Parse()
+
+	os.Exit(m.Run())
+}
+
 func BenchmarkNew(b *testing.B) {
 	type config struct {
 		name string
@@ -30,15 +52,15 @@ func BenchmarkNew(b *testing.B) {
 	}
 
 	var configs []config
-	for _, k := range util.BenchmarkKRange {
-		for _, n := range util.BenchmarkNRange {
+	for _, k := range util.BenchmarkKRange(SuiteSize) {
+		for _, n := range util.BenchmarkNRange(SuiteSize) {
 			configs = append(configs, config{
 				name:  fmt.Sprintf("kyroy/K=%v/N=%v", k, n),
 				k:     k,
 				n:     n,
 				kyroy: true,
 			})
-			for _, size := range util.BenchmarkSizeRange {
+			for _, size := range util.BenchmarkSizeRange(SuiteSize) {
 				configs = append(configs, config{
 					name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v", k, n, size),
 					k:    k,
@@ -81,8 +103,8 @@ func BenchmarkKNN(b *testing.B) {
 	}
 
 	var configs []config
-	for _, k := range util.BenchmarkKRange {
-		for _, n := range util.BenchmarkNRange {
+	for _, k := range util.BenchmarkKRange(SuiteSize) {
+		for _, n := range util.BenchmarkNRange(SuiteSize) {
 			ps := util.Generate(n, k)
 
 			// Brute force approach sorts all data, meaning that the
@@ -94,7 +116,7 @@ func BenchmarkKNN(b *testing.B) {
 				knn:  n,
 			})
 
-			for _, f := range util.BenchmarkFRange {
+			for _, f := range util.BenchmarkFRange(SuiteSize) {
 				knn := int(float64(n) * f)
 
 				// kyroy implementation does not take a
@@ -106,7 +128,7 @@ func BenchmarkKNN(b *testing.B) {
 					knn:  knn,
 				})
 
-				for _, size := range util.BenchmarkSizeRange {
+				for _, size := range util.BenchmarkSizeRange(SuiteSize) {
 					configs = append(configs, config{
 						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/KNN=%v", k, n, size, f),
 						t: (*ckd.KD[*mock.P])(unsafe.Pointer(
@@ -142,8 +164,8 @@ func BenchmarkRangeSearch(b *testing.B) {
 	}
 
 	var configs []config
-	for _, k := range util.BenchmarkKRange {
-		for _, n := range util.BenchmarkNRange {
+	for _, k := range util.BenchmarkKRange(SuiteSize) {
+		for _, n := range util.BenchmarkNRange(SuiteSize) {
 			ps := util.Generate(n, k)
 
 			// Brute force approach sorts all data, meaning that the
@@ -154,7 +176,7 @@ func BenchmarkRangeSearch(b *testing.B) {
 				q:    util.RH(k, 1),
 			})
 
-			for _, f := range util.BenchmarkFRange {
+			for _, f := range util.BenchmarkFRange(SuiteSize) {
 				q := util.RH(k, f)
 
 				// kyroy implementation does not take a
@@ -165,7 +187,7 @@ func BenchmarkRangeSearch(b *testing.B) {
 					q:    q,
 				})
 
-				for _, size := range util.BenchmarkSizeRange {
+				for _, size := range util.BenchmarkSizeRange(SuiteSize) {
 					configs = append(configs, config{
 						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/Coverage=%v", k, n, size, f),
 						t: (*ckd.KD[*mock.P])(unsafe.Pointer(
