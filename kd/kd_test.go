@@ -26,9 +26,9 @@ func TestNew(t *testing.T) {
 	}
 
 	var configs []config
-	for _, k := range putil.KRange {
-		for _, n := range putil.NRange {
-			for _, size := range putil.SizeRange {
+	for _, k := range putil.PerfTestSize(putil.SizeUnit).K() {
+		for _, n := range putil.PerfTestSize(putil.SizeUnit).N() {
+			for _, size := range putil.PerfTestSize(putil.SizeUnit).LeafSize() {
 				configs = append(configs, config{
 					name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v", k, n, size),
 					k:    k,
@@ -123,10 +123,10 @@ func TestKNN(t *testing.T) {
 	}
 
 	var configs []config
-	for _, k := range putil.KRange {
-		for _, n := range putil.NRange {
-			for _, size := range putil.SizeRange {
-				for _, f := range putil.FRange {
+	for _, k := range putil.PerfTestSize(putil.SizeUnit).K() {
+		for _, n := range putil.PerfTestSize(putil.SizeUnit).N() {
+			for _, size := range putil.PerfTestSize(putil.SizeUnit).LeafSize() {
+				for _, f := range putil.PerfTestSize(putil.SizeUnit).F() {
 					configs = append(configs, config{
 						name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v/KNN=%v", k, n, size, f),
 						k:    k,
@@ -172,10 +172,10 @@ func TestRangeSearch(t *testing.T) {
 	}
 
 	var configs []config
-	for _, k := range putil.KRange {
-		for _, n := range putil.NRange {
-			for _, size := range putil.SizeRange {
-				for _, f := range putil.FRange {
+	for _, k := range putil.PerfTestSize(putil.SizeUnit).K() {
+		for _, n := range putil.PerfTestSize(putil.SizeUnit).N() {
+			for _, size := range putil.PerfTestSize(putil.SizeUnit).LeafSize() {
+				for _, f := range putil.PerfTestSize(putil.SizeUnit).F() {
 					configs = append(configs, config{
 						name: fmt.Sprintf("K=%v/N=%v/LeafSize=%v/Coverage=%v", k, n, size, f),
 						k:    k,
