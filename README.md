@@ -7,7 +7,12 @@ See [Wikipedia](https://en.wikipedia.org/wiki/K-d_tree) for more information.
 ## Testing
 
 ```bash
-go test github.com/downflux/go-kd/... -bench . -benchmem -timeout=60m
+go test github.com/downflux/go-kd/...
+go test github.com/downflux/go-kd/internal/perf \
+  -bench . \
+  -benchmem \
+  -timeout=60m \
+  -args -performance_test_size=large
 ```
 
 ## Example
