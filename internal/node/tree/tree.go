@@ -11,6 +11,10 @@ import (
 	vnd "github.com/downflux/go-geometry/nd/vector"
 )
 
+const (
+	NLargeData = 128
+)
+
 type O[T point.P] struct {
 	Data []T
 	K    vnd.D
@@ -77,48 +81,61 @@ func New[T point.P](o O[T]) *N[T] {
 		k:     o.K,
 	}
 
-	// Node construction can be concurrent since we guarantee child nodes
-	// will never access data across the high / low boundary. Note that this
-	// does increase the number of allocs ~3x, and is less performant for
-	// low data sizes (i.e. for less than ~10k points). We can optionally
-	// branch tree construction on the length of incoming data if we find
-	// the performance prohibitively slow.
-	l := make(chan *N[T])
-	r := make(chan *N[T])
-
-	go func(ch chan<- *N[T]) {
-		ch <- New[T](O[T]{
-			Data: o.Data[0:pivot],
-			Axis: (o.Axis + 1) % o.K,
-			K:    o.K,
-			N:    o.N,
-			// There is no need to continue shuffling data in child
-			// nodes, as we are making the assumption the root
-			// shuffle was random enough.
-			inorder: true,
-		})
-		close(ch)
-	}(l)
-	go func(ch chan<- *N[T]) {
-		ch <- New[T](O[T]{
-			Data:    o.Data[pivot+1 : len(o.Data)],
-			Axis:    (o.Axis + 1) % o.K,
-			K:       o.K,
-			N:       o.N,
-			inorder: true,
-		})
-		close(ch)
-	}(r)
-
-	// Skip adding child nodes if they do not contain data -- this prevents
-	// extraneous leaves from being added.
-	if n := <-l; len(n.Data()) > 0 {
-		node.left = n
+	ol := O[T]{
+		Data: o.Data[0:pivot],
+		Axis: (o.Axis + 1) % o.K,
+		K:    o.K,
+		N:    o.N,
+		// There is no need to continue shuffling data in child
+		// nodes, as we are making the assumption the root
+		// shuffle was random enough.
+		inorder: true,
 	}
-	if n := <-r; len(n.Data()) > 0 {
-		node.right = n
+	or := O[T]{
+		Data:    o.Data[pivot+1 : len(o.Data)],
+		Axis:    (o.Axis + 1) % o.K,
+		K:       o.K,
+		N:       o.N,
+		inorder: true,
 	}
 
+	// Channel overhead is too high relative to the stack when the dataset
+	// is small. Quick experimentation has determined a value which seems
+	// "good enough" to branch on, though this figure can probably be dialed
+	// in more as architectures change.
+	if len(o.Data) < NLargeData {
+		if n := New[T](ol); len(n.Data()) > 0 {
+			node.left = n
+		}
+		if n := New[T](or); len(n.Data()) > 0 {
+			node.right = n
+		}
+	} else {
+		// Node construction can be concurrent since we guarantee child nodes
+		// will never access data across the high / low boundary. Note that this
+		// does increase the number of allocs ~3x, and is less performant for
+		// low data sizes (i.e. for less than ~10k points).
+		l := make(chan *N[T])
+		r := make(chan *N[T])
+
+		go func(ch chan<- *N[T]) {
+			ch <- New[T](ol)
+			close(ch)
+		}(l)
+		go func(ch chan<- *N[T]) {
+			ch <- New[T](or)
+			close(ch)
+		}(r)
+
+		// Skip adding child nodes if they do not contain data -- this prevents
+		// extraneous leaves from being added.
+		if n := <-l; len(n.Data()) > 0 {
+			node.left = n
+		}
+		if n := <-r; len(n.Data()) > 0 {
+			node.right = n
+		}
+	}
 	return node
 }
 
