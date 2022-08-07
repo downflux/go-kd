@@ -48,7 +48,7 @@ func (s PerfTestSize) F() []float64 {
 	return map[PerfTestSize][]float64{
 		SizeUnit:  []float64{0.05},
 		SizeSmall: []float64{0.05},
-		SizeLarge: []float64{0.05, 0.1, 0.25},
+		SizeLarge: []float64{0.05, 0.1},
 	}[s]
 }
 
@@ -72,7 +72,10 @@ func (s PerfTestSize) K() []vector.D {
 	return map[PerfTestSize][]vector.D{
 		SizeUnit:  []vector.D{2},
 		SizeSmall: []vector.D{2, 16},
-		SizeLarge: []vector.D{2, 16, 128},
+
+		// Large tests phyically cannot store enough point data in
+		// memory with high-dimensional data.
+		SizeLarge: []vector.D{16},
 	}[s]
 }
 
