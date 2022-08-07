@@ -24,4 +24,4 @@ jobs:
       run: go vet github.com/downflux/go-kd/...
 
     - name: Test github.com/downflux/go-kd
-      run: go test github.com/downflux/go-kd/... -run ^$ -bench . -benchmem -timeout=10m
+      run: go test github.com/downflux/go-kd/... -run ^$ -bench . -benchmem

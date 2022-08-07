@@ -5,19 +5,21 @@ import (
 	"testing"
 
 	"github.com/downflux/go-geometry/nd/hyperrectangle"
-	"github.com/downflux/go-geometry/nd/vector"
 	"github.com/downflux/go-kd/container/bruteforce"
 	"github.com/downflux/go-kd/internal/node/util"
 	"github.com/downflux/go-kd/point/mock"
+	"github.com/downflux/go-kd/vector"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 
+	vnd "github.com/downflux/go-geometry/nd/vector"
 	putil "github.com/downflux/go-kd/internal/perf/util"
 )
 
 func TestNew(t *testing.T) {
 	type config struct {
 		name string
-		k    vector.D
+		k    vnd.D
 		n    int
 
 		size int
@@ -56,7 +58,7 @@ func TestData(t *testing.T) {
 	type config struct {
 		name string
 		data []*mock.P
-		k    vector.D
+		k    vnd.D
 		want []*mock.P
 	}
 
@@ -101,7 +103,10 @@ func TestData(t *testing.T) {
 				N:    1,
 			})
 			got := Data(kd)
-			if diff := cmp.Diff(c.want, got); diff != "" {
+			if diff := cmp.Diff(c.want, got, cmpopts.SortSlices(
+				func(p, q *mock.P) bool {
+					return vector.Less(p.P(), q.P())
+				})); diff != "" {
 				t.Errorf("KNN mismatch (-want +got):\n%v", diff)
 			}
 		})
@@ -110,7 +115,7 @@ func TestData(t *testing.T) {
 func TestKNN(t *testing.T) {
 	type config struct {
 		name string
-		k    vector.D
+		k    vnd.D
 		n    int
 		size int
 
@@ -137,7 +142,7 @@ func TestKNN(t *testing.T) {
 	for _, c := range configs {
 		ps := putil.Generate(c.n, c.k)
 		t.Run(c.name, func(t *testing.T) {
-			p := vector.V(make([]float64, c.k))
+			p := vnd.V(make([]float64, c.k))
 
 			got := KNN(
 				New[*mock.P](O[*mock.P]{
@@ -160,7 +165,7 @@ func TestKNN(t *testing.T) {
 func TestRangeSearch(t *testing.T) {
 	type config struct {
 		name string
-		k    vector.D
+		k    vnd.D
 		n    int
 		size int
 		q    hyperrectangle.R
@@ -197,7 +202,7 @@ func TestRangeSearch(t *testing.T) {
 			)
 			want := bruteforce.New[*mock.P](ps).RangeSearch(c.q, putil.TrivialFilter)
 
-			if diff := cmp.Diff(want, got, putil.Transformer(vector.V(make([]float64, c.k)))); diff != "" {
+			if diff := cmp.Diff(want, got, putil.Transformer(vnd.V(make([]float64, c.k)))); diff != "" {
 				t.Errorf("RangeSearch mismatch (-want +got):\n%v", diff)
 			}
 		})

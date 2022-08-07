@@ -2,6 +2,7 @@ package tree
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/downflux/go-kd/internal/node"
 	"github.com/downflux/go-kd/point"
@@ -18,6 +19,11 @@ type O[T point.P] struct {
 	N int
 
 	Axis vnd.D
+
+	// inorder specifies if the incoming data should be shuffled first
+	// before consuming; this is a test-only option useful for comparing
+	// expected states.
+	inorder bool
 }
 
 type N[T point.P] struct {
@@ -46,6 +52,13 @@ func validate[T point.P](o O[T]) error {
 func New[T point.P](o O[T]) *N[T] {
 	if err := validate(o); err != nil {
 		panic(fmt.Sprintf("could not construct node: %v", err))
+	}
+
+	// hoare is known to be quadratic in the worst case (i.e. when data is
+	// in-sequence). Therefore we want to ensure this is not the case by
+	// randomly shuffling the data ordering first.
+	if !o.inorder && len(o.Data) > 0 {
+		rand.Shuffle(len(o.Data), func(i, j int) { o.Data[i], o.Data[j] = o.Data[j], o.Data[i] })
 	}
 
 	if len(o.Data) <= o.N {
@@ -79,15 +92,20 @@ func New[T point.P](o O[T]) *N[T] {
 			Axis: (o.Axis + 1) % o.K,
 			K:    o.K,
 			N:    o.N,
+			// There is no need to continue shuffling data in child
+			// nodes, as we are making the assumption the root
+			// shuffle was random enough.
+			inorder: true,
 		})
 		close(ch)
 	}(l)
 	go func(ch chan<- *N[T]) {
 		ch <- New[T](O[T]{
-			Data: o.Data[pivot+1 : len(o.Data)],
-			Axis: (o.Axis + 1) % o.K,
-			K:    o.K,
-			N:    o.N,
+			Data:    o.Data[pivot+1 : len(o.Data)],
+			Axis:    (o.Axis + 1) % o.K,
+			K:       o.K,
+			N:       o.N,
+			inorder: true,
 		})
 		close(ch)
 	}(r)

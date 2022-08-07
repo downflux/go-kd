@@ -27,9 +27,10 @@ func TestInsert(t *testing.T) {
 		{
 			name: "Nil",
 			opts: O[mock.P]{
-				Data: nil,
-				K:    1,
-				N:    1,
+				Data:    nil,
+				K:       1,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.U(1)},
@@ -53,8 +54,9 @@ func TestInsert(t *testing.T) {
 					mock.P{X: mock.U(1)},
 					mock.P{X: mock.U(-50)},
 				},
-				K: 1,
-				N: 1,
+				K:       1,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.U(0)},
@@ -85,8 +87,9 @@ func TestInsert(t *testing.T) {
 					mock.P{X: mock.U(1)},
 					mock.P{X: mock.U(50)},
 				},
-				K: 1,
-				N: 1,
+				K:       1,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.U(2)},
@@ -117,8 +120,9 @@ func TestInsert(t *testing.T) {
 					mock.P{X: mock.U(1)},
 					mock.P{X: mock.U(50)},
 				},
-				K: 1,
-				N: 1,
+				K:       1,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.U(1), Data: "B"},
@@ -149,8 +153,9 @@ func TestInsert(t *testing.T) {
 					mock.P{X: mock.V([]float64{1, 40})},
 					mock.P{X: mock.V([]float64{-50, 70})},
 				},
-				K: 2,
-				N: 1,
+				K:       2,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.V([]float64{-55, 100})},
@@ -181,8 +186,9 @@ func TestInsert(t *testing.T) {
 					mock.P{X: mock.V([]float64{-50, 70})},
 					mock.P{X: mock.V([]float64{1, 40})},
 				},
-				K: 2,
-				N: 1,
+				K:       2,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.V([]float64{-49, 100})},
@@ -237,9 +243,10 @@ func TestRemove(t *testing.T) {
 		{
 			name: "Nil",
 			opts: O[mock.P]{
-				Data: nil,
-				K:    1,
-				N:    1,
+				Data:    nil,
+				K:       1,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.U(1)},
@@ -254,8 +261,9 @@ func TestRemove(t *testing.T) {
 				Data: []mock.P{
 					mock.P{X: mock.U(100)},
 				},
-				K: 1,
-				N: 1,
+				K:       1,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.U(100)},
@@ -273,8 +281,9 @@ func TestRemove(t *testing.T) {
 					mock.P{X: mock.U(100)},
 					mock.P{X: mock.U(-50)},
 				},
-				K: 1,
-				N: 1,
+				K:       1,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.U(-50)},
@@ -300,8 +309,9 @@ func TestRemove(t *testing.T) {
 					mock.P{X: mock.V([]float64{100, 1})},
 					mock.P{X: mock.V([]float64{-50, 100})},
 				},
-				K: 2,
-				N: 1,
+				K:       2,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.V([]float64{-50, 100})},
@@ -327,8 +337,9 @@ func TestRemove(t *testing.T) {
 					mock.P{X: mock.U(-50)},
 					mock.P{X: mock.U(100)},
 				},
-				K: 1,
-				N: 1,
+				K:       1,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.U(100)},
@@ -355,8 +366,9 @@ func TestRemove(t *testing.T) {
 					mock.P{X: mock.V([]float64{-50, 101})},
 					mock.P{X: mock.V([]float64{100, 500})},
 				},
-				K: 2,
-				N: 1,
+				K:       2,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.V([]float64{-50, 101})},
@@ -389,8 +401,9 @@ func TestRemove(t *testing.T) {
 					mock.P{X: mock.U(-50)},
 					mock.P{X: mock.U(100)},
 				},
-				K: 1,
-				N: 1,
+				K:       1,
+				N:       1,
+				inorder: true,
 			},
 			ps: []mock.P{
 				mock.P{X: mock.U(-50)},
@@ -437,10 +450,11 @@ func TestNew(t *testing.T) {
 		{
 			name: "NullNode",
 			opts: O[mock.P]{
-				Data: nil,
-				K:    2,
-				N:    1,
-				Axis: 0,
+				Data:    nil,
+				K:       2,
+				N:       1,
+				Axis:    0,
+				inorder: true,
 			},
 			want: &N[mock.P]{
 				k: 2,
@@ -455,9 +469,10 @@ func TestNew(t *testing.T) {
 						Data: "foo",
 					},
 				},
-				K:    1,
-				N:    1,
-				Axis: 0,
+				K:       1,
+				N:       1,
+				Axis:    0,
+				inorder: true,
 			},
 			want: &N[mock.P]{
 				data: []mock.P{
@@ -483,9 +498,10 @@ func TestNew(t *testing.T) {
 						Data: "foo",
 					},
 				},
-				K:    1,
-				N:    1,
-				Axis: 0,
+				K:       1,
+				N:       1,
+				Axis:    0,
+				inorder: true,
 			},
 			want: &N[mock.P]{
 				data: []mock.P{
@@ -524,9 +540,10 @@ func TestNew(t *testing.T) {
 						Data: "A",
 					},
 				},
-				K:    1,
-				N:    1,
-				Axis: 0,
+				K:       1,
+				N:       1,
+				Axis:    0,
+				inorder: true,
 			},
 			want: &N[mock.P]{
 				data: []mock.P{
@@ -568,9 +585,10 @@ func TestNew(t *testing.T) {
 						Data: "baz",
 					},
 				},
-				K:    1,
-				N:    2,
-				Axis: 0,
+				K:       1,
+				N:       2,
+				Axis:    0,
+				inorder: true,
 			},
 			want: &N[mock.P]{
 				data: []mock.P{
@@ -615,9 +633,10 @@ func TestNew(t *testing.T) {
 						Data: "baz",
 					},
 				},
-				K:    2,
-				N:    2,
-				Axis: 0,
+				K:       2,
+				N:       2,
+				Axis:    0,
+				inorder: true,
 			},
 			want: &N[mock.P]{
 				data: []mock.P{
@@ -662,9 +681,10 @@ func TestNew(t *testing.T) {
 						Data: "baz",
 					},
 				},
-				K:    1,
-				N:    1,
-				Axis: 0,
+				K:       1,
+				N:       1,
+				Axis:    0,
+				inorder: true,
 			},
 			want: &N[mock.P]{
 				data: []mock.P{
@@ -716,9 +736,10 @@ func TestNew(t *testing.T) {
 						Data: "baz",
 					},
 				},
-				K:    2,
-				N:    1,
-				Axis: 0,
+				K:       2,
+				N:       1,
+				Axis:    0,
+				inorder: true,
 			},
 			want: &N[mock.P]{
 				pivot: mock.V(*vnd.New(-100, 1)),
