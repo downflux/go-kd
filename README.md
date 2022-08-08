@@ -84,3 +84,51 @@ func main() {
 	}
 }
 ```
+
+## Performance (@v1.0.0)
+
+This k-D tree implementation was compared against a brute force method, as well
+as with the leading Golang k-D tree implementation
+(http://github.com/kyroy/kdtree). Overall, we have found that
+
+* tree construction is about 10x faster for large N.
+
+  ```
+  BenchmarkNew/kyroy/K=16/N=1000-8               758980 ns/op  146777 B/op
+  BenchmarkNew/Real/K=16/N=1000/LeafSize=16-8    200749 ns/op   32637 B/op
+
+  BenchmarkNew/kyroy/K=16/N=1000000-8                7407144200 ns/op  184813784 B/op
+  BenchmarkNew/Real/K=16/N=1000000/LeafSize=256-8     588456300 ns/op   12462912 B/op
+  ```
+
+* KNN is significantly faster; for small N, we have found our implementation is
+  ~10x faster than the reference implementation and ~20x faster than brute
+  force. For large N, we have found up to ~15x faster than brute force, and a
+  staggering _~1500x_ speedup when compared to the reference implementation.
+
+  ```
+  BenchmarkKNN/BruteForce/K=16/N=1000-8                   1563019 ns/op  2220712 B/op
+  BenchmarkKNN/kyroy/K=16/N=1000/KNN=0.05-8                791415 ns/op    21960 B/op
+  BenchmarkKNN/Real/K=16/N=1000/LeafSize=16/KNN=0.05-8      69537 ns/op    12024 B/op
+
+  BenchmarkKNN/BruteForce/K=16/N=1000000-8                       5030811400 ns/op  5347687464 B/op
+  BenchmarkKNN/kyroy/K=16/N=1000000/KNN=0.05-8                 529703585200 ns/op    23755688 B/op
+  BenchmarkKNN/Real/K=16/N=1000000/LeafSize=256/KNN=0.05-8        335845533 ns/op     6044016 B/op
+  ```
+
+* RangeSearch is slower for small N -- we are approximately at parity for brute
+  force, and ~10x slower than the reference implementation. However, at large N,
+  we are ~300x faster than brute force, and ~100x faster than the reference
+  implementation.
+
+  ```
+  BenchmarkRangeSearch/BruteForce/K=16/N=1000-8                        154712 ns/op   25208 B/op
+  BenchmarkRangeSearch/kyroy/K=16/N=1000/Coverage=0.05-8                13373 ns/op     496 B/op
+  BenchmarkRangeSearch/Real/K=16/N=1000/LeafSize=16/Coverage=0.05-8    193276 ns/op  101603 B/op
+
+  BenchmarkRangeSearch/BruteForce/K=16/N=1000000-8                         173427000 ns/op  41678072 B/op
+  BenchmarkRangeSearch/kyroy/K=16/N=1000000/Coverage=0.05-8                 56820240 ns/op       496 B/op
+  BenchmarkRangeSearch/Real/K=16/N=1000000/LeafSize=256/Coverage=0.05-8       530937 ns/op    212134 B/op
+  ```
+
+Raw data on these results may be found [here](/internal/perf/results/v0.5.5.txt).

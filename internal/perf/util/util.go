@@ -14,23 +14,18 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-var (
-	KRange    = []vector.D{2}
-	NRange    = []int{1e3}
-	SizeRange = []int{1, 16}
-	FRange    = []float64{0.05}
-)
-
 type PerfTestSize int
 
 const (
 	SizeUnknown PerfTestSize = iota
+	SizeUnit
 	SizeSmall
 	SizeLarge
 )
 
 func (s *PerfTestSize) String() string {
 	return map[PerfTestSize]string{
+		SizeUnit:  "unit",
 		SizeSmall: "small",
 		SizeLarge: "large",
 	}[*s]
@@ -38,6 +33,7 @@ func (s *PerfTestSize) String() string {
 
 func (s *PerfTestSize) Set(v string) error {
 	size, ok := map[string]PerfTestSize{
+		"unit":  SizeUnit,
 		"small": SizeSmall,
 		"large": SizeLarge,
 	}[v]
@@ -48,28 +44,38 @@ func (s *PerfTestSize) Set(v string) error {
 	return nil
 }
 
-func BenchmarkFRange(s PerfTestSize) []float64 {
+func (s PerfTestSize) F() []float64 {
 	return map[PerfTestSize][]float64{
+		SizeUnit:  []float64{0.05},
 		SizeSmall: []float64{0.05},
-		SizeLarge: []float64{0.05, 0.1, 0.25},
+		SizeLarge: []float64{0.05, 0.1},
 	}[s]
 }
 
-func BenchmarkSizeRange(s PerfTestSize) []int {
-	return []int{1, 32, 512}
+func (s PerfTestSize) LeafSize() []int {
+	return map[PerfTestSize][]int{
+		SizeUnit:  []int{1, 16},
+		SizeSmall: []int{1, 32, 512},
+		SizeLarge: []int{1, 16, 256},
+	}[s]
 }
 
-func BenchmarkNRange(s PerfTestSize) []int {
+func (s PerfTestSize) N() []int {
 	return map[PerfTestSize][]int{
+		SizeUnit:  []int{1e3},
 		SizeSmall: []int{1e3, 1e4},
 		SizeLarge: []int{1e3, 1e4, 1e6},
 	}[s]
 }
 
-func BenchmarkKRange(s PerfTestSize) []vector.D {
+func (s PerfTestSize) K() []vector.D {
 	return map[PerfTestSize][]vector.D{
+		SizeUnit:  []vector.D{2},
 		SizeSmall: []vector.D{2, 16},
-		SizeLarge: []vector.D{2, 16, 128},
+
+		// Large tests phyically cannot store enough point data in
+		// memory with high-dimensional data.
+		SizeLarge: []vector.D{16},
 	}[s]
 }
 

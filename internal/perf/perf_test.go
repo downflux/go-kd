@@ -33,7 +33,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	flag.Var(&SuiteSize, "performance_test_size", "performance test size, one of (small | large)")
+	flag.Var(&SuiteSize, "performance_test_size", "performance test size, one of (unit | small | large)")
 	flag.Parse()
 
 	os.Exit(m.Run())
@@ -52,15 +52,15 @@ func BenchmarkNew(b *testing.B) {
 	}
 
 	var configs []config
-	for _, k := range util.BenchmarkKRange(SuiteSize) {
-		for _, n := range util.BenchmarkNRange(SuiteSize) {
+	for _, k := range SuiteSize.K() {
+		for _, n := range SuiteSize.N() {
 			configs = append(configs, config{
 				name:  fmt.Sprintf("kyroy/K=%v/N=%v", k, n),
 				k:     k,
 				n:     n,
 				kyroy: true,
 			})
-			for _, size := range util.BenchmarkSizeRange(SuiteSize) {
+			for _, size := range SuiteSize.LeafSize() {
 				configs = append(configs, config{
 					name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v", k, n, size),
 					k:    k,
@@ -103,8 +103,8 @@ func BenchmarkKNN(b *testing.B) {
 	}
 
 	var configs []config
-	for _, k := range util.BenchmarkKRange(SuiteSize) {
-		for _, n := range util.BenchmarkNRange(SuiteSize) {
+	for _, k := range SuiteSize.K() {
+		for _, n := range SuiteSize.N() {
 			ps := util.Generate(n, k)
 
 			// Brute force approach sorts all data, meaning that the
@@ -116,7 +116,7 @@ func BenchmarkKNN(b *testing.B) {
 				knn:  n,
 			})
 
-			for _, f := range util.BenchmarkFRange(SuiteSize) {
+			for _, f := range SuiteSize.F() {
 				knn := int(float64(n) * f)
 
 				// kyroy implementation does not take a
@@ -128,7 +128,7 @@ func BenchmarkKNN(b *testing.B) {
 					knn:  knn,
 				})
 
-				for _, size := range util.BenchmarkSizeRange(SuiteSize) {
+				for _, size := range SuiteSize.LeafSize() {
 					configs = append(configs, config{
 						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/KNN=%v", k, n, size, f),
 						t: (*ckd.KD[*mock.P])(unsafe.Pointer(
@@ -164,8 +164,8 @@ func BenchmarkRangeSearch(b *testing.B) {
 	}
 
 	var configs []config
-	for _, k := range util.BenchmarkKRange(SuiteSize) {
-		for _, n := range util.BenchmarkNRange(SuiteSize) {
+	for _, k := range SuiteSize.K() {
+		for _, n := range SuiteSize.N() {
 			ps := util.Generate(n, k)
 
 			// Brute force approach sorts all data, meaning that the
@@ -176,7 +176,7 @@ func BenchmarkRangeSearch(b *testing.B) {
 				q:    util.RH(k, 1),
 			})
 
-			for _, f := range util.BenchmarkFRange(SuiteSize) {
+			for _, f := range SuiteSize.F() {
 				q := util.RH(k, f)
 
 				// kyroy implementation does not take a
@@ -187,7 +187,7 @@ func BenchmarkRangeSearch(b *testing.B) {
 					q:    q,
 				})
 
-				for _, size := range util.BenchmarkSizeRange(SuiteSize) {
+				for _, size := range SuiteSize.LeafSize() {
 					configs = append(configs, config{
 						name: fmt.Sprintf("Real/K=%v/N=%v/LeafSize=%v/Coverage=%v", k, n, size, f),
 						t: (*ckd.KD[*mock.P])(unsafe.Pointer(
