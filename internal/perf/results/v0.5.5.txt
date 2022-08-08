@@ -1,0 +1,72 @@
+goos: linux
+goarch: amd64
+pkg: github.com/downflux/go-kd/internal/perf
+cpu: Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
+BenchmarkNew/kyroy/K=16/N=1000-8         	    1528	    758980 ns/op	  146777 B/op	    2524 allocs/op
+BenchmarkNew/Real/K=16/N=1000/LeafSize=1-8         	    3805	    276313 ns/op	  126098 B/op	    2089 allocs/op
+BenchmarkNew/Real/K=16/N=1000/LeafSize=16-8        	    6034	    200749 ns/op	   32637 B/op	     420 allocs/op
+BenchmarkNew/Real/K=16/N=1000/LeafSize=256-8       	   10000	    113851 ns/op	   12155 B/op	      63 allocs/op
+BenchmarkNew/kyroy/K=16/N=10000-8                  	      79	  15089373 ns/op	 1674236 B/op	   25924 allocs/op
+BenchmarkNew/Real/K=16/N=10000/LeafSize=1-8        	     514	   2201218 ns/op	 1263945 B/op	   20928 allocs/op
+BenchmarkNew/Real/K=16/N=10000/LeafSize=16-8       	     751	   1599132 ns/op	  330730 B/op	    4264 allocs/op
+BenchmarkNew/Real/K=16/N=10000/LeafSize=256-8      	     886	   1273534 ns/op	  125601 B/op	     692 allocs/op
+BenchmarkNew/kyroy/K=16/N=1000000-8                	       1	7407144200 ns/op	184813784 B/op	 2524327 allocs/op
+BenchmarkNew/Real/K=16/N=1000000/LeafSize=1-8      	       2	 735249000 ns/op	127022260 B/op	 2096135 allocs/op
+BenchmarkNew/Real/K=16/N=1000000/LeafSize=16-8     	       2	 559409550 ns/op	33078812 B/op	  428590 allocs/op
+BenchmarkNew/Real/K=16/N=1000000/LeafSize=256-8    	       2	 588456300 ns/op	12462912 B/op	   70330 allocs/op
+BenchmarkKNN/BruteForce/K=16/N=1000-8              	     956	   1563019 ns/op	 2220712 B/op	   17165 allocs/op
+BenchmarkKNN/kyroy/K=16/N=1000/KNN=0.05-8          	    1501	    791415 ns/op	   21960 B/op	    1116 allocs/op
+BenchmarkKNN/Real/K=16/N=1000/LeafSize=1/KNN=0.05-8         	    6880	    176106 ns/op	   37984 B/op	     972 allocs/op
+BenchmarkKNN/Real/K=16/N=1000/LeafSize=16/KNN=0.05-8        	   17564	     69537 ns/op	   12024 B/op	     330 allocs/op
+BenchmarkKNN/Real/K=16/N=1000/LeafSize=256/KNN=0.05-8       	   22638	     53922 ns/op	    6880 B/op	     209 allocs/op
+BenchmarkKNN/kyroy/K=16/N=1000/KNN=0.1-8                    	     996	   1194847 ns/op	   27880 B/op	    1242 allocs/op
+BenchmarkKNN/Real/K=16/N=1000/LeafSize=1/KNN=0.1-8          	    6176	    196038 ns/op	   44184 B/op	    1102 allocs/op
+BenchmarkKNN/Real/K=16/N=1000/LeafSize=16/KNN=0.1-8         	   10000	    101893 ns/op	   17896 B/op	     489 allocs/op
+BenchmarkKNN/Real/K=16/N=1000/LeafSize=256/KNN=0.1-8        	   16645	     70664 ns/op	   10784 B/op	     295 allocs/op
+BenchmarkKNN/BruteForce/K=16/N=10000-8                      	      74	  25007432 ns/op	30633256 B/op	  236548 allocs/op
+BenchmarkKNN/kyroy/K=16/N=10000/KNN=0.05-8                  	      37	  30799189 ns/op	  223040 B/op	   10906 allocs/op
+BenchmarkKNN/Real/K=16/N=10000/LeafSize=1/KNN=0.05-8        	     654	   2057458 ns/op	  373568 B/op	    9747 allocs/op
+BenchmarkKNN/Real/K=16/N=10000/LeafSize=16/KNN=0.05-8       	    1303	    889883 ns/op	  118112 B/op	    3294 allocs/op
+BenchmarkKNN/Real/K=16/N=10000/LeafSize=256/KNN=0.05-8      	    1663	    679360 ns/op	   58024 B/op	    1741 allocs/op
+BenchmarkKNN/kyroy/K=16/N=10000/KNN=0.1-8                   	      13	  91103708 ns/op	  297008 B/op	   12232 allocs/op
+BenchmarkKNN/Real/K=16/N=10000/LeafSize=1/KNN=0.1-8         	     562	   2202105 ns/op	  413840 B/op	   10845 allocs/op
+BenchmarkKNN/Real/K=16/N=10000/LeafSize=16/KNN=0.1-8        	     961	   1215787 ns/op	  165600 B/op	    4681 allocs/op
+BenchmarkKNN/Real/K=16/N=10000/LeafSize=256/KNN=0.1-8       	    1220	    984166 ns/op	  100272 B/op	    2923 allocs/op
+BenchmarkKNN/BruteForce/K=16/N=1000000-8                    	       1	5030811400 ns/op	5347687464 B/op	41453237 allocs/op
+BenchmarkKNN/kyroy/K=16/N=1000000/KNN=0.05-8                	       1	529703585200 ns/op	23755688 B/op	 1107742 allocs/op
+BenchmarkKNN/Real/K=16/N=1000000/LeafSize=1/KNN=0.05-8      	       3	 464044100 ns/op	36143720 B/op	 1001542 allocs/op
+BenchmarkKNN/Real/K=16/N=1000000/LeafSize=16/KNN=0.05-8     	       3	 347817233 ns/op	11420744 B/op	  333388 allocs/op
+BenchmarkKNN/Real/K=16/N=1000000/LeafSize=256/KNN=0.05-8    	       3	 335845533 ns/op	 6044016 B/op	  190971 allocs/op
+BenchmarkKNN/kyroy/K=16/N=1000000/KNN=0.1-8                 	       1	1694060569900 ns/op	31972504 B/op	 1237806 allocs/op
+BenchmarkKNN/Real/K=16/N=1000000/LeafSize=1/KNN=0.1-8       	       3	 501073000 ns/op	40388328 B/op	 1130901 allocs/op
+BenchmarkKNN/Real/K=16/N=1000000/LeafSize=16/KNN=0.1-8      	       3	 394814333 ns/op	16062312 B/op	  473830 allocs/op
+BenchmarkKNN/Real/K=16/N=1000000/LeafSize=256/KNN=0.1-8     	       3	 365633867 ns/op	10085976 B/op	  304736 allocs/op
+BenchmarkRangeSearch/BruteForce/K=16/N=1000-8               	    7825	    154712 ns/op	   25208 B/op	      12 allocs/op
+BenchmarkRangeSearch/kyroy/K=16/N=1000/Coverage=0.05-8      	   89456	     13373 ns/op	     496 B/op	       5 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=1000/LeafSize=1/Coverage=0.05-8         	    5394	    314928 ns/op	  207113 B/op	    1978 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=1000/LeafSize=16/Coverage=0.05-8        	    7376	    193276 ns/op	  101603 B/op	     970 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=1000/LeafSize=256/Coverage=0.05-8       	   15967	     75247 ns/op	   21216 B/op	     202 allocs/op
+BenchmarkRangeSearch/kyroy/K=16/N=1000/Coverage=0.1-8                    	   58239	     20985 ns/op	     496 B/op	       5 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=1000/LeafSize=1/Coverage=0.1-8          	    5154	    288420 ns/op	  179478 B/op	    1714 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=1000/LeafSize=16/Coverage=0.1-8         	    6628	    237190 ns/op	  121699 B/op	    1162 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=1000/LeafSize=256/Coverage=0.1-8        	   16291	     69358 ns/op	   21216 B/op	     202 allocs/op
+BenchmarkRangeSearch/BruteForce/K=16/N=10000-8                           	     774	   1594897 ns/op	  357624 B/op	      19 allocs/op
+BenchmarkRangeSearch/kyroy/K=16/N=10000/Coverage=0.05-8                  	    5510	    205729 ns/op	     496 B/op	       5 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=10000/LeafSize=1/Coverage=0.05-8        	    4323	    332339 ns/op	  202086 B/op	    1930 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=10000/LeafSize=16/Coverage=0.05-8       	    4491	    336055 ns/op	  141795 B/op	    1354 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=10000/LeafSize=256/Coverage=0.05-8      	    6256	    187946 ns/op	   46337 B/op	     442 allocs/op
+BenchmarkRangeSearch/kyroy/K=16/N=10000/Coverage=0.1-8                   	    3904	    288862 ns/op	     496 B/op	       5 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=10000/LeafSize=1/Coverage=0.1-8         	     643	   2387566 ns/op	 2355150 B/op	   22500 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=10000/LeafSize=16/Coverage=0.1-8        	    2816	    614839 ns/op	  523648 B/op	    5002 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=10000/LeafSize=256/Coverage=0.1-8       	    5074	    258066 ns/op	  101605 B/op	     970 allocs/op
+BenchmarkRangeSearch/BruteForce/K=16/N=1000000-8                         	       7	 173427000 ns/op	41678072 B/op	      38 allocs/op
+BenchmarkRangeSearch/kyroy/K=16/N=1000000/Coverage=0.05-8                	      20	  56820240 ns/op	     496 B/op	       5 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=1000000/LeafSize=1/Coverage=0.05-8      	     266	   5463061 ns/op	 5008653 B/op	   47853 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=1000000/LeafSize=16/Coverage=0.05-8     	     698	   2587562 ns/op	 2242039 B/op	   21420 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=1000000/LeafSize=256/Coverage=0.05-8    	    2593	    530937 ns/op	  212134 B/op	    2026 allocs/op
+BenchmarkRangeSearch/kyroy/K=16/N=1000000/Coverage=0.1-8                 	      15	  76181887 ns/op	     496 B/op	       5 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=1000000/LeafSize=1/Coverage=0.1-8       	      82	  18895179 ns/op	17748509 B/op	  169579 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=1000000/LeafSize=16/Coverage=0.1-8      	     150	   6825001 ns/op	 6734713 B/op	   64344 allocs/op
+BenchmarkRangeSearch/Real/K=16/N=1000000/LeafSize=256/Coverage=0.1-8     	     298	   4691212 ns/op	 2920521 B/op	   27902 allocs/op
+PASS
+ok  	github.com/downflux/go-kd/internal/perf	2466.847s
