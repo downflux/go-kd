@@ -2,8 +2,8 @@ github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/downflux/go-geometry v0.10.2 h1:Z79Khzl6AKMSMLnM5xG75fEOL1fmIWlF14+8j+r01D0=
 github.com/downflux/go-geometry v0.10.2/go.mod h1:XWTzSaMiRMAxupAR+cXAsa1Q75TCSp1Shc/ydsJ0xVE=
-github.com/downflux/go-pq v0.1.1 h1:dwWLUMBiUTrZO+TlD+oHPQqsqQDo3f7Yyo8nvO1CV7Y=
-github.com/downflux/go-pq v0.1.1/go.mod h1:6amZrMlYUeY1Ba9T+0A11y2BBENzsUqMmu4o5CMndMk=
+github.com/downflux/go-pq v0.1.3 h1:qQZhqUiXor2gMa4k3VYWxwHHIa8GTEmZA90XBhTV3To=
+github.com/downflux/go-pq v0.1.3/go.mod h1:vkc6UAQ+TBoNdTwDm5akDexE1auN2kQcR8BFw3hNCiM=
 github.com/google/go-cmp v0.5.8 h1:e6P7q2lk1O+qJJb4BtCQXlK8vWEO8V1ZeuEdJNOqZyg=
 github.com/google/go-cmp v0.5.8/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/jupp0r/go-priority-queue v0.0.0-20160601094913-ab1073853bde h1:+5PMaaQtDUwOcJIUlmX89P0J3iwTvErTmyn5WghzXAQ=
