@@ -26,7 +26,7 @@ func RangeSearch[T point.P](n node.N[T], q hyperrectangle.R, f func(p T) bool) [
 }
 
 func rangesearch[T point.P](n node.N[T], q hyperrectangle.R, bound hyperrectangle.R, f func(p T) bool) []T {
-	if _, ok := q.Intersect(bound); n.Nil() || !ok {
+	if n.Nil() || hyperrectangle.Disjoint(q, bound) {
 		return nil
 	}
 
