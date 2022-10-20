@@ -5,8 +5,8 @@ import (
 
 	"github.com/downflux/go-kd/internal/node"
 	"github.com/downflux/go-kd/point"
-	"github.com/downflux/go-pq/pq"
 	"github.com/downflux/go-kd/vector"
+	"github.com/downflux/go-pq/pq"
 
 	vnd "github.com/downflux/go-geometry/nd/vector"
 )

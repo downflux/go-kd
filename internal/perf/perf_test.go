@@ -4,9 +4,9 @@
 // computational time constraints. To run the full set of tests (which make take
 // up to an hour), run
 //
-// go test github.com/downflux/go-kd/internal/perf \
-//   -bench . -benchmem -timeout=60m \
-//   -args -performance_test_size=large
+//	go test github.com/downflux/go-kd/internal/perf \
+//	  -bench . -benchmem -timeout=60m \
+//	  -args -performance_test_size=large
 package perf
 
 import (
